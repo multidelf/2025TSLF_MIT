@@ -19,45 +19,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const TOTAL_PIECES = 6;
     const GOAL_AMOUNT = 1500;
     const PIECE_PREFIX = 'M';
-
-    // ===== ▼▼▼ 新增的店家資料對照表 ▼▼▼ =====
     const storeData = {
-        'A01': '老王的手工皮件',
-        'A02': '小草的溫暖織物',
-        'A03': '阿明設計工作室',
-        'A04': '山谷裡的烘焙坊',
-        'A05': '轉角那間咖啡廳',
-        // --- 請在這裡將您所有店家的名稱填寫完畢 ---
-        // 'A06': '下一個店家名稱',
-        // ...
-        'A40': '最後一個店家名稱'
+        'A01': '老王的手工皮件', 'A02': '小草的溫暖織物', 'A03': '阿明設計工作室',
+        'A04': '山谷裡的烘焙坊', 'A05': '轉角那間咖啡廳',
+        // --- 請繼續將您所有店家的名稱填寫完畢 ---
     };
-    // =====================================
-
     const defaultUserData = { collectedMapPieces: [], totalAmount: 0, isGameWon: false };
     let userData = { ...defaultUserData };
 
     // --- 函式定義 ---
 
-    function showAlert(message) { /* ... 內容不變 ... */ }
-    function updateUserData(data) { /* ... 內容不變 ... */ }
-    function renderMap() { /* ... 內容不變 ... */ }
-    function renderCompass() { /* ... 內容不變 ... */ }
-    function renderAll() { /* ... 內容不變 ... */ }
-    function checkWinCondition() { /* ... 內容不變 ... */ }
-    function showTreasureLocation() { /* ... 內容不變 ... */ }
-    function handleDiscover(pieceId) { /* ... 內容不變 ... */ }
-    
-    // 舊有函式內容，為求簡潔省略，請參考您原有的檔案，底下只列出修改的函式
-    // ... (此處省略未變動的函式，以節省篇幅)
-
-    // (此處省略未變動的函式，以節省篇幅，請直接複製貼上以確保完整性)
-    // 實際上您需要複製的是整個檔案的內容
-    
-    // ... (The actual response will contain the full code, this is just a thought process summary)
-    // The user needs the full file, so I will provide it.
-    
-    // **新的客製化提示函式**
     function showAlert(message) {
         customAlertMessage.textContent = message;
         customAlertModal.style.display = 'flex';
@@ -127,12 +98,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // ===== ▼▼▼ 主要修改的函式 ▼▼▼ =====
     function handlePurchase(storeId) {
-        // 從字典查詢名稱，如果找不到，就用原本的ID
         const storeName = storeData[storeId] || storeId; 
-        modalStoreName.textContent = `在 ${storeName} 消費`; // 使用查詢到的名稱
-
+        modalStoreName.textContent = `在 ${storeName} 消費`;
         purchaseModal.style.display = 'flex';
         
         const submitHandler = () => {
@@ -159,7 +127,6 @@ document.addEventListener('DOMContentLoaded', () => {
         submitAmountButton.addEventListener('click', submitHandler);
         cancelButton.addEventListener('click', cancelHandler);
     }
-    // =====================================
 
     function init() {
         const savedData = localStorage.getItem('eventUserData');
