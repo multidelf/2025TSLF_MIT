@@ -73,6 +73,23 @@ h2 { border-bottom: 2px solid #bcaaa4; padding-bottom: 10px; margin-bottom: 20px
 .story-origin p { margin-bottom: 1em; text-indent: 2em; }
 .story-origin p:last-child { margin-bottom: 0; }
 
+/* 重要注意事項區塊樣式 */
+#important-notes {
+    width: 100%;
+    max-width: 860px;
+    margin-top: 40px;
+    padding: 20px;
+    background-color: rgba(255, 235, 238, 0.85);
+    border: 2px solid #ef9a9a;
+    border-radius: 10px;
+    box-sizing: border-box;
+}
+#important-notes h3 { text-align: center; color: #c62828; margin-top: 0; margin-bottom: 20px; font-size: 1.4em; }
+#important-notes ul { list-style-type: none; padding: 0; margin: 0; }
+#important-notes li { text-align: left; margin-bottom: 15px; padding-left: 25px; position: relative; font-size: 0.9em; line-height: 1.6; color: #4e342e; }
+#important-notes li:last-child { margin-bottom: 0; }
+#important-notes li::before { content: '⚠️'; position: absolute; left: 0; top: 2px; }
+
 /* RWD 響應式設計 */
 @media (max-width: 768px) {
     header h1 { font-size: 2em; }
