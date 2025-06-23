@@ -44,20 +44,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function renderMap() {
-        mapBoard.innerHTML = '';
-        for (let i = 1; i <= TOTAL_PIECES; i++) {
-            const pieceId = PIECE_PREFIX + String(i).padStart(2, '0');
-            const pieceDiv = document.createElement('div');
-            pieceDiv.className = 'map-piece';
+        const allPieceDivs = document.querySelectorAll('.map-piece');
+        allPieceDivs.forEach(pieceDiv => {
+            const pieceId = pieceDiv.dataset.pieceId;
             if (userData.collectedMapPieces.includes(pieceId)) {
                 pieceDiv.classList.add('unlocked');
-                const img = document.createElement('img');
-                img.src = `images/${pieceId}.png`;
-                img.alt = `匠心碎片 ${i}`;
-                pieceDiv.appendChild(img);
+            } else {
+                pieceDiv.classList.remove('unlocked');
             }
-            mapBoard.appendChild(pieceDiv);
-        }
+        });
         mapProgressText.textContent = `${userData.collectedMapPieces.length} / ${TOTAL_PIECES}`;
     }
 
