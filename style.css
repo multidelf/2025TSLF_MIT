@@ -14,7 +14,7 @@ body {
 }
 
 #game-container {
-    background-color: rgba(255, 255, 255, 0.8);
+    background-color: rgba(255, 255, 255, 0.85);
     border: 3px solid #a1887f;
     border-radius: 15px;
     padding: 20px;
@@ -42,11 +42,30 @@ section { flex: 1; min-width: 300px; }
 h2 { border-bottom: 2px solid #bcaaa4; padding-bottom: 10px; margin-bottom: 20px; font-size: 1.8em; }
 .progress-text { font-size: 1.2em; font-weight: bold; margin-top: 20px; }
 
-/* 地圖樣式 */
-#map-board { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 1fr); gap: 5px; width: 100%; max-width: 450px; margin: 0 auto; border: 5px solid #8d6e63; background-color: rgba(215, 204, 200, 0.5); position: relative; }
-.map-piece { width: 100%; padding-bottom: 100%; background-image: url('images/placeholder.png'); background-size: cover; background-position: center; position: relative; transition: transform 0.5s, opacity 0.5s; }
-.map-piece.unlocked { background-image: none; }
-.map-piece img { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; }
+/* 地圖樣式 (喚醒式) */
+#map-board { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 1fr); gap: 5px; width: 100%; max-width: 450px; margin: 0 auto; border: 5px solid #8d6e63; background-color: rgba(215, 204, 200, 0.5); padding: 5px; }
+.map-piece { width: 100%; padding-bottom: 100%; position: relative; }
+
+.map-piece img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+    border-radius: 4px;
+    /* 預設：黯淡、半透明的效果 */
+    opacity: 0.35;
+    filter: grayscale(80%) brightness(0.9);
+    transition: all 0.5s ease-in-out; /* 過渡動畫 */
+}
+
+.map-piece.unlocked img {
+    opacity: 1;
+    filter: grayscale(0%) brightness(1);
+    transform: scale(1.05);
+    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+}
 
 /* 微笑之心/羅盤樣式 */
 #compass-container { position: relative; width: 200px; height: 200px; margin: 20px auto; }
@@ -74,16 +93,7 @@ h2 { border-bottom: 2px solid #bcaaa4; padding-bottom: 10px; margin-bottom: 20px
 .story-origin p:last-child { margin-bottom: 0; }
 
 /* 重要注意事項區塊樣式 */
-#important-notes {
-    width: 100%;
-    max-width: 860px;
-    margin-top: 40px;
-    padding: 20px;
-    background-color: rgba(255, 235, 238, 0.85);
-    border: 2px solid #ef9a9a;
-    border-radius: 10px;
-    box-sizing: border-box;
-}
+#important-notes { width: 100%; max-width: 860px; margin: 40px auto 0 auto; padding: 20px; background-color: rgba(255, 235, 238, 0.85); border: 2px solid #ef9a9a; border-radius: 10px; box-sizing: border-box; }
 #important-notes h3 { text-align: center; color: #c62828; margin-top: 0; margin-bottom: 20px; font-size: 1.4em; }
 #important-notes ul { list-style-type: none; padding: 0; margin: 0; }
 #important-notes li { text-align: left; margin-bottom: 15px; padding-left: 25px; position: relative; font-size: 0.9em; line-height: 1.6; color: #4e342e; }
