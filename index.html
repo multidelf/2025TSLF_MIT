@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>尋找微笑之心</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="game-container">
+        <header>
+            <h1>尋找微笑之心</h1>
+            <p>循著靴上微笑的指引，拼湊出匠心地圖，理解「微笑之心」的真諦。</p>
+            
+            <div class="story-origin">
+                <h4>【緣起：爺爺的藏寶圖】</h4>
+                <p>在一個充滿舊物氣息的閣樓裡，年輕的設計師阿明發現了爺爺留下的一個木箱。箱子裡沒有金銀珠寶，而是一雙作工精緻、皮革柔軟的短靴，以及一張泛黃的羊皮卷。</p>
+                <p>靴子的線條優美，皮革觸感溫潤，在靴子的內側，阿明發現烙印著一個小小的微笑標誌。他拿起那張羊皮卷，上面寫著一段謎語：</p>
+                <p>「孩子，你找到了我的『旅人之靴』。但穿上它，不代表你真正擁有它。這雙靴子承載的，是名為『信賴』的重量與一份最真誠的驕傲。它，就是『微笑之心』。循著靴上微笑的指引，去尋找它誕生的根源，去尋找更多優秀的MIT產品的吧，當你理解了『微笑之心』的真諦，這雙靴子才能真正帶你走向未來。」</p>
+            </div>
+            </header>
+
+        <main id="main-content">
+            <section id="map-section">
+                <h2>匠心地圖</h2>
+                <div id="map-board">
+                    </div>
+                <p class="progress-text">匠心碎片：<span id="map-progress-text">0 / 6</span> 片</p>
+            </section>
+
+            <section id="compass-section">
+                <h2>微笑之心</h2>
+                <div id="compass-container">
+                    <img src="images/heart-base.png" alt="心形底座" class="compass-image">
+                    <div id="compass-progress-bar"></div>
+                    <img src="images/smile-logo.png" alt="微笑標誌" class="compass-image compass-needle-overlay">
+                </div>
+                <p class="progress-text">信賴指數：<span id="compass-progress-text">0 / 1500</span></p>
+            </section>
+        </main>
+        
+        <div id="purchase-modal" class="modal-overlay" style="display: none;">
+            <div class="modal-content">
+                <h3 id="modal-store-name">在店家消費</h3>
+                <p>感謝您對本店的信賴，請輸入支持金額：</p>
+                <input type="number" id="amount-input" placeholder="例如：350" inputmode="numeric">
+                <button id="submit-amount-button">累積信賴</button>
+                <button id="cancel-button">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

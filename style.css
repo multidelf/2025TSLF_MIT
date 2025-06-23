@@ -1,0 +1,236 @@
+/* 全局樣式 */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: #f4f1ea; /* 溫暖的米白色 */
+    background-image: url('images/background.png'); /* 推薦使用木紋或皮革紋理 */
+    color: #5d4037;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    box-sizing: border-box; 
+}
+
+#game-container {
+    background-color: rgba(255, 255, 255, 0.8);
+    border: 3px solid #a1887f;
+    border-radius: 15px;
+    padding: 20px;
+    max-width: 900px;
+    width: 100%;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    text-align: center;
+}
+
+header h1 {
+    font-size: 2.5em; 
+    color: #4e342e;
+    margin-bottom: 0.5em;
+}
+
+#main-content {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+section {
+    flex: 1;
+    min-width: 300px;
+}
+
+h2 {
+    border-bottom: 2px solid #bcaaa4;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    font-size: 1.8em;
+}
+
+.progress-text {
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-top: 20px;
+}
+
+/* 地圖樣式 */
+#map-board {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 5px;
+    width: 100%;
+    max-width: 450px;
+    margin: 0 auto;
+    border: 5px solid #8d6e63;
+    background-color: rgba(215, 204, 200, 0.5);
+    position: relative;
+}
+
+.map-piece {
+    width: 100%;
+    padding-bottom: 100%; 
+    background-image: url('images/placeholder.png');
+    background-size: cover;
+    background-position: center;
+    position: relative; 
+    transition: transform 0.5s, opacity 0.5s;
+}
+
+.map-piece.unlocked {
+    background-image: none;
+}
+
+.map-piece img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+/* 微笑之心/羅盤樣式 */
+#compass-container {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    margin: 20px auto;
+}
+
+.compass-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.compass-needle-overlay {
+    transition: transform 1s ease-in-out;
+}
+
+#compass-progress-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: conic-gradient(#ff8a65 0%, #ffe0b2 0%); /* 溫暖的橘色系 */
+    z-index: -1;
+    transition: background 0.5s;
+}
+
+/* 彈出視窗樣式 */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: #fff;
+    padding: 30px;
+    border-radius: 10px;
+    text-align: center;
+    width: 90%;
+    max-width: 400px;
+}
+
+.modal-content input {
+    width: 80%;
+    padding: 10px;
+    margin: 15px 0;
+    font-size: 1.2em;
+    text-align: center;
+    border: 2px solid #ccc;
+    border-radius: 5px;
+}
+
+.modal-content button {
+    padding: 10px 20px;
+    font-size: 1em;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    margin: 0 5px;
+}
+
+#submit-amount-button {
+    background-color: #81c784;
+    color: white;
+}
+#cancel-button {
+    background-color: #e57373;
+    color: white;
+}
+
+/* ================================================= */
+/* =====      故事開場白樣式 (最新版)         ===== */
+/* ================================================= */
+
+.story-origin {
+    margin-top: 30px; 
+    padding-top: 20px; 
+    border-top: 1px solid #d7ccc8; 
+    max-width: 600px; 
+    margin-left: auto;
+    margin-right: auto;
+    text-align: left; /* 段落文字靠左對齊 */
+    font-size: 0.9em; 
+    line-height: 1.7; 
+    color: #8d6e63; /* <-- 已更新為您指定的較淺顏色 */
+}
+
+.story-origin h4 {
+    text-align: center; 
+    margin-bottom: 1em;
+    font-weight: bold;
+    font-size: 1.1em;
+    color: #795548; /* 小標題顏色稍深以示區別 */
+}
+
+.story-origin p {
+    margin-bottom: 1em; 
+    text-indent: 2em; /* 段落開頭縮排 */
+}
+
+.story-origin p:last-child {
+    margin-bottom: 0;
+}
+
+/* ================================================= */
+/* =====      響應式設計 Media Queries         ===== */
+/* ================================================= */
+
+/* 當螢幕寬度小於或等於 768px 時 (平板) */
+@media (max-width: 768px) {
+    header h1 { font-size: 2em; }
+    h2 { font-size: 1.5em; }
+    #game-container { padding: 15px; }
+    #main-content { gap: 20px; }
+}
+
+/* 當螢幕寬度小於或等於 480px 時 (手機) */
+@media (max-width: 480px) {
+    body { padding: 10px; }
+    header h1 { font-size: 1.8em; }
+    h2 { font-size: 1.3em; }
+    .progress-text { font-size: 1em; }
+    #compass-container { width: 150px; height: 150px; }
+    .story-origin {
+        font-size: 0.85em;
+        text-indent: 1.5em; /* 縮小手機上的縮排 */
+    }
+}
