@@ -91,10 +91,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!userData.collectedMapPieces.includes(pieceId)) {
             const newCollectedPieces = [...userData.collectedMapPieces, pieceId].sort();
             updateUserData({ ...userData, collectedMapPieces: newCollectedPieces });
-            showAlert(`恭喜！你領悟了一片匠心碎片： #${pieceId.substring(1)}！`);
+            showAlert(`恭喜！你得到了一片匠心碎片： #${pieceId.substring(1)}！`);
             checkWinCondition();
         } else {
-            showAlert('這片匠心你已經領悟過了喔！');
+            showAlert('這片匠心你已經得到過了喔！');
         }
     }
 
