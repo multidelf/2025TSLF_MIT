@@ -3,7 +3,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- DOM元素定義 ---
     const mapBoard = document.getElementById('map-board');
     const mapProgressText = document.getElementById('map-progress-text');
-    const compassProgressBar = document.getElementById('compass-progress-bar');
     const compassProgressText = document.getElementById('compass-progress-text');
     const logoVivid = document.querySelector('.logo-vivid');
     const purchaseModal = document.getElementById('purchase-modal');
@@ -29,9 +28,11 @@ document.addEventListener('DOMContentLoaded', () => {
         isGameWon: false 
     };
     let userData = { ...defaultUserData };
+    let animationInterval = null; // 用來存放動畫的計時器
 
     // --- 函式定義 ---
 
+    // 自訂提示視窗函式
     function showAlert(message) {
         document.getElementById('qrcode-container').innerHTML = '';
         document.getElementById('qrcode-container').style.display = 'none';
@@ -42,12 +43,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }, { once: true });
     }
 
+    // 更新使用者資料並儲存到 localStorage
     function updateUserData(data) {
         userData = data;
         localStorage.setItem('eventUserData', JSON.stringify(userData));
-        renderAll();
+        // 注意：這裡不再呼叫 renderAll()，因為動畫和最終狀態的渲染由其他地方控制
     }
     
+    // 渲染地圖外觀
     function renderMap() {
         const allPieceDivs = document.querySelectorAll('.map-piece');
         allPieceDivs.forEach(pieceDiv => {
@@ -61,17 +64,63 @@ document.addEventListener('DOMContentLoaded', () => {
         mapProgressText.textContent = `${userData.collectedMapPieces.length} / ${TOTAL_PIECES}`;
     }
 
-    function renderCompass() {
-        const percentage = Math.min((userData.totalAmount / GOAL_AMOUNT) * 100, 100);
-        compassProgressBar.style.background = `conic-gradient(#ff8a65 ${percentage}%, #ffe0b2 0%)`;
-        compassProgressText.textContent = `${userData.totalAmount} / ${GOAL_AMOUNT}`;
+    // 渲染羅盤外觀（可接收動態數值）
+    function renderCompass(amount) {
+        const displayAmount = Math.round(amount);
+        const percentage = Math.min((displayAmount / GOAL_AMOUNT) * 100, 100);
+        
+        compassProgressText.textContent = `${displayAmount} / ${GOAL_AMOUNT}`;
+        
         const maskStyle = `conic-gradient(black ${percentage}%, transparent ${percentage}%)`;
         logoVivid.style.maskImage = maskStyle;
         logoVivid.style.webkitMaskImage = maskStyle;
     }
     
-    function renderAll() { renderMap(); renderCompass(); }
+    // 渲染所有靜態畫面
+    function renderAll() { 
+        renderMap(); 
+        renderCompass(userData.totalAmount); 
+    }
 
+    // 分段式動畫函式
+    function animateProgress(startAmount, endAmount) {
+        if (animationInterval) {
+            clearInterval(animationInterval);
+        }
+
+        const TOTAL_SEGMENTS = 10; // 將進度分成10個扇形區段
+        const duration = 1200; // 動畫總時長: 1.2秒
+        const frameRate = 60;
+        const totalFrames = duration / (1000 / frameRate);
+        const amountToAnimate = endAmount - startAmount;
+        const incrementPerFrame = amountToAnimate / totalFrames;
+
+        let currentAmount = startAmount;
+        let displayedSegments = Math.floor((startAmount / GOAL_AMOUNT) * TOTAL_SEGMENTS);
+
+        animationInterval = setInterval(() => {
+            currentAmount += incrementPerFrame;
+
+            if (currentAmount >= endAmount) {
+                currentAmount = endAmount;
+                clearInterval(animationInterval);
+                animationInterval = null;
+                renderCompass(endAmount); // 確保最終畫面是精確的結束值
+                return;
+            }
+
+            const targetSegments = Math.floor((currentAmount / GOAL_AMOUNT) * TOTAL_SEGMENTS);
+
+            if (targetSegments > displayedSegments) {
+                displayedSegments = targetSegments;
+                const displayAmountForSegment = (displayedSegments / TOTAL_SEGMENTS) * GOAL_AMOUNT;
+                renderCompass(displayAmountForSegment);
+            }
+
+        }, 1000 / frameRate);
+    }
+
+    // 檢查勝利條件
     function checkWinCondition() {
         if (userData.isGameWon) return; 
         const mapIsComplete = userData.collectedMapPieces.length === TOTAL_PIECES;
@@ -82,26 +131,30 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // 顯示勝利狀態（出現兌換按鈕）
     function showTreasureLocation() {
         mapBoard.style.boxShadow = '0 0 30px 10px #ffd54f';
         redeemButton.style.display = 'block';
     }
 
+    // 處理探索碼掃描
     function handleDiscover(pieceId) {
         if (!userData.collectedMapPieces.includes(pieceId)) {
             const newCollectedPieces = [...userData.collectedMapPieces, pieceId].sort();
             updateUserData({ ...userData, collectedMapPieces: newCollectedPieces });
             showAlert(`恭喜！你得到了一片匠心碎片： #${pieceId.substring(1)}！`);
+            renderMap(); // 只更新地圖
             checkWinCondition();
         } else {
             showAlert('這片匠心你已經得到過了喔！');
         }
     }
 
+    // 處理消費碼掃描（已整合動畫）
     function handlePurchase(storeId) {
         const storeName = storeData[storeId] || storeId; 
         modalStoreName.textContent = `在 ${storeName} 消費`;
-        modalStoreName.dataset.storeId = storeId; // 暫存 storeId 以便後續使用
+        modalStoreName.dataset.storeId = storeId;
         purchaseModal.style.display = 'flex';
         
         const submitHandler = () => {
@@ -110,26 +163,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 showAlert('請輸入有效的金額！');
                 return;
             }
-            updateUserData({ ...userData, totalAmount: userData.totalAmount + amount });
+
+            const previousAmount = userData.totalAmount;
+            const newTotalAmount = previousAmount + amount;
+
+            animateProgress(previousAmount, newTotalAmount);
+            
             closeModal();
             showAlert(`感謝您的支持！信賴指數增加了 ${amount} 點！`);
+            
+            updateUserData({ ...userData, totalAmount: newTotalAmount });
             checkWinCondition();
-
-            // ===== START: 新增的背景記錄程式碼 =====
-            const API_URL = 'https://script.google.com/macros/s/AKfycbz-6CiVtDU251TKiQc73NYYlfg8gTqESOvAOUc1VWtFz-_g7J0a1cdgfBUZWuDDs5x0PA/exec';
-            const logData = {
-                storeId: modalStoreName.dataset.storeId,
-                storeName: storeData[modalStoreName.dataset.storeId] || modalStoreName.dataset.storeId,
-                amount: amount,
-                userId: userData.userId
-            };
-            const params = new URLSearchParams({
-                action: 'log_purchase',
-                ...logData
-            });
-            // 發送到後端，不需等待回應 (fire and forget)
-            fetch(`${API_URL}?${params.toString()}`);
-            // ===== END: 新增的背景記錄程式碼 =====
         };
 
         const cancelHandler = () => closeModal();
@@ -145,6 +189,7 @@ document.addEventListener('DOMContentLoaded', () => {
         cancelButton.addEventListener('click', cancelHandler);
     }
 
+    // 處理兌換碼產生
     redeemButton.addEventListener('click', () => {
         if (confirm('確定要產生兌換碼嗎？\n請在服務台人員面前點擊此按鈕。')) {
             showAlert('兌換碼產生中，請稍候...');
@@ -181,6 +226,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // 處理故事區塊的展開/收合
     toggleStoryButton.addEventListener('click', () => {
         storyOriginDiv.classList.toggle('is-expanded');
         toggleStoryButton.classList.toggle('active');
@@ -192,6 +238,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // 初始化函式
     function init() {
         const savedData = localStorage.getItem('eventUserData');
         if (savedData) {
@@ -199,10 +246,13 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             localStorage.setItem('eventUserData', JSON.stringify(userData));
         }
+        
         renderAll();
+        
         if (userData.isGameWon) {
              showTreasureLocation();
         }
+        
         const urlParams = new URLSearchParams(window.location.search);
         const type = urlParams.get('type');
         if (type) {
@@ -217,5 +267,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // 啟動程式
     init();
 });
