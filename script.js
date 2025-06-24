@@ -20,8 +20,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const GOAL_AMOUNT = 1500;
     const PIECE_PREFIX = 'M';
     const storeData = {
-        'A01': '老王的手工皮件', 'A02': '小草的溫暖織物', 'A03': '阿明設計工作室',
-        'A04': '山谷裡的烘焙坊', 'A05': '轉角那間咖啡廳',
+        'A01': '鞋寶觀光工廠', 'A02': '小幫手庇護工場', 'A03': '麥子庇護工場',
+        'A04': '山谷裡的麵包店', 'A05': '轉角沒有咖啡廳',
         // --- 請繼續將您所有店家的名稱填寫完畢 ---
     };
     const defaultUserData = { collectedMapPieces: [], totalAmount: 0, isGameWon: false };
