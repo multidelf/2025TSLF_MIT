@@ -30,6 +30,20 @@ header h1 {
     margin-bottom: 0.5em;
 }
 
+/* 主要操作提示文字 (置中醒目版) */
+.main-scan-prompt {
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.1em;
+    color: #bf360c;
+    margin-top: 30px;
+    margin-bottom: 10px;
+    padding: 15px 10px;
+    border-top: 2px dashed #a1887f;
+    border-bottom: 2px dashed #a1887f;
+    background-color: rgba(255, 236, 179, 0.4);
+}
+
 #main-content {
     display: flex;
     flex-wrap: wrap;
@@ -41,18 +55,6 @@ header h1 {
 section { flex: 1; min-width: 300px; }
 h2 { border-bottom: 2px solid #bcaaa4; padding-bottom: 10px; margin-bottom: 20px; font-size: 1.8em; }
 .progress-text { font-size: 1.2em; font-weight: bold; margin-top: 20px; }
-
-/* 掃描提示文字樣式 */
-.scan-instruction {
-    font-size: 0.9em;
-    color: #616161;
-    margin-top: -15px;
-    margin-bottom: 20px;
-    padding: 8px 15px;
-    background-color: rgba(0, 0, 0, 0.04);
-    border-radius: 6px;
-    display: inline-block;
-}
 
 /* 地圖樣式 (喚醒式) */
 #map-board { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 1fr); gap: 5px; width: 100%; max-width: 450px; margin: 0 auto; border: 5px solid #8d6e63; background-color: rgba(215, 204, 200, 0.5); padding: 5px; }
