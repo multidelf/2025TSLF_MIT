@@ -16,21 +16,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const customAlertOkButton = document.getElementById('custom-alert-ok-button');
     const toggleStoryButton = document.getElementById('toggle-story-button');
     const storyOriginDiv = document.querySelector('.story-origin');
+    const redeemButton = document.getElementById('redeem-button');
 
     // --- 全局變數 ---
     const TOTAL_PIECES = 6;
     const GOAL_AMOUNT = 1500;
-    const storeData = {
-        'A01': '鞋寶觀光工廠', 'A02': '小幫手庇護工場', 'A03': '麥子庇護工場',
-        'A04': '山谷裡的麵包店', 'A05': '轉角沒有咖啡廳', 'A06': '範例店家六號'
-        // --- 請繼續將您所有店家的名稱填寫完畢 ---
+    const storeData = { 'A01': '鞋寶觀光工廠', 'A02': '小幫手庇護工場', 'A03': '麥子庇護工場', 'A04': '山谷裡的麵包店', 'A05': '轉角沒有咖啡廳', 'A06': '範例店家六號' };
+    const defaultUserData = { 
+        userId: 'user_' + Date.now() + Math.random().toString(36).substr(2, 9), 
+        collectedMapPieces: [], 
+        totalAmount: 0, 
+        isGameWon: false 
     };
-    const defaultUserData = { collectedMapPieces: [], totalAmount: 0, isGameWon: false };
     let userData = { ...defaultUserData };
 
     // --- 函式定義 ---
 
     function showAlert(message) {
+        document.getElementById('qrcode-container').innerHTML = '';
+        document.getElementById('qrcode-container').style.display = 'none';
         customAlertMessage.textContent = message;
         customAlertModal.style.display = 'flex';
         customAlertOkButton.addEventListener('click', () => {
@@ -61,7 +65,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const percentage = Math.min((userData.totalAmount / GOAL_AMOUNT) * 100, 100);
         compassProgressBar.style.background = `conic-gradient(#ff8a65 ${percentage}%, #ffe0b2 0%)`;
         compassProgressText.textContent = `${userData.totalAmount} / ${GOAL_AMOUNT}`;
-        
         const maskStyle = `conic-gradient(black ${percentage}%, transparent ${percentage}%)`;
         logoVivid.style.maskImage = maskStyle;
         logoVivid.style.webkitMaskImage = maskStyle;
@@ -81,9 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function showTreasureLocation() {
         mapBoard.style.boxShadow = '0 0 30px 10px #ffd54f';
-        setTimeout(() => {
-            showAlert('恭喜你！匠心地圖已然完整，微笑之心也因你的信賴而閃耀。你已理解它的真諦！請至【服務台】出示此畫面，領取你的「通關小禮」！');
-        }, 1200);
+        redeemButton.style.display = 'block';
     }
 
     function handleDiscover(pieceId) {
@@ -101,7 +102,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const storeName = storeData[storeId] || storeId; 
         modalStoreName.textContent = `在 ${storeName} 消費`;
         purchaseModal.style.display = 'flex';
-        
         const submitHandler = () => {
             const amount = parseInt(amountInput.value, 10);
             if (isNaN(amount) || amount <= 0) {
@@ -113,21 +113,53 @@ document.addEventListener('DOMContentLoaded', () => {
             showAlert(`感謝您的支持！信賴指數增加了 ${amount} 點！`);
             checkWinCondition();
         };
-
         const cancelHandler = () => closeModal();
-        
         const closeModal = () => {
              purchaseModal.style.display = 'none';
              amountInput.value = '';
              submitAmountButton.removeEventListener('click', submitHandler);
              cancelButton.removeEventListener('click', cancelHandler);
         };
-        
         submitAmountButton.addEventListener('click', submitHandler);
         cancelButton.addEventListener('click', cancelHandler);
     }
 
-    // 監聽故事按鈕的點擊事件
+    redeemButton.addEventListener('click', () => {
+        if (confirm('確定要產生兌換碼嗎？\n請在服務台人員面前點擊此按鈕。')) {
+            showAlert('兌換碼產生中，請稍候...');
+            redeemButton.disabled = true;
+            const clientSideUserData = JSON.parse(localStorage.getItem('eventUserData'));
+            const userId = clientSideUserData.userId;
+            const API_URL = 'https://script.google.com/macros/s/AKfycbz-6CiVtDU251TKiQc73NYYlfg8gTqESOvAOUc1VWtFz-_g7J0a1cdgfBUZWuDDs5x0PA/exec';
+            
+            fetch(`${API_URL}?action=generate&userId=${userId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success' || data.status === 'already_generated') {
+                        const qrcodeContainer = document.getElementById('qrcode-container');
+qrcodeContainer.innerHTML = '';
+                        qrcodeContainer.style.display = 'block';
+                        const verificationUrl = `https://your-domain.com/verify.html?code=${data.code}`;
+                        new QRCode(qrcodeContainer, {
+                            text: verificationUrl,
+                            width: 180, height: 180,
+                            colorDark: "#000000", colorLight: "#ffffff",
+                            correctLevel: QRCode.CorrectLevel.H
+                        });
+                        document.getElementById('custom-alert-message').textContent = `您的專屬兌換碼已產生！\n請將此 QR Code 出示給工作人員掃描。`;
+                        redeemButton.style.display = 'none';
+                    } else {
+                        showAlert(`發生錯誤：${data.message}`);
+                        redeemButton.disabled = false;
+                    }
+                })
+                .catch(error => {
+                    showAlert(`網路連線錯誤，請稍後再試。`);
+                    redeemButton.disabled = false;
+                });
+        }
+    });
+
     toggleStoryButton.addEventListener('click', () => {
         storyOriginDiv.classList.toggle('is-expanded');
         toggleStoryButton.classList.toggle('active');
@@ -143,6 +175,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const savedData = localStorage.getItem('eventUserData');
         if (savedData) {
             userData = { ...defaultUserData, ...JSON.parse(savedData) };
+        } else {
+            // 如果是全新使用者，直接儲存一次預設值 (包含產生的新userId)
+            localStorage.setItem('eventUserData', JSON.stringify(userData));
         }
         renderAll();
         if (userData.isGameWon) {
