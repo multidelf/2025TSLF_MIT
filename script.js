@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const mapProgressText = document.getElementById('map-progress-text');
     const compassProgressBar = document.getElementById('compass-progress-bar');
     const compassProgressText = document.getElementById('compass-progress-text');
-    const compassNeedle = document.querySelector('.compass-needle-overlay');
+    const logoVivid = document.querySelector('.logo-vivid'); // 選取鮮明的 Logo 圖層
     const purchaseModal = document.getElementById('purchase-modal');
     const modalStoreName = document.getElementById('modal-store-name');
     const amountInput = document.getElementById('amount-input');
@@ -61,12 +61,10 @@ document.addEventListener('DOMContentLoaded', () => {
         compassProgressBar.style.background = `conic-gradient(#ff8a65 ${percentage}%, #ffe0b2 0%)`;
         compassProgressText.textContent = `${userData.totalAmount} / ${GOAL_AMOUNT}`;
         
-        const minContrast = 10;
-        const maxContrast = 100;
-        const progressRatio = Math.min(userData.totalAmount / GOAL_AMOUNT, 1);
-        const currentContrast = minContrast + (progressRatio * (maxContrast - minContrast));
-        
-        compassNeedle.style.filter = `contrast(${currentContrast}%)`;
+        // 控制遮罩的核心邏輯
+        const maskStyle = `conic-gradient(black ${percentage}%, transparent ${percentage}%)`;
+        logoVivid.style.maskImage = maskStyle;
+        logoVivid.style.webkitMaskImage = maskStyle;
     }
     
     function renderAll() { renderMap(); renderCompass(); }
@@ -83,7 +81,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function showTreasureLocation() {
         mapBoard.style.boxShadow = '0 0 30px 10px #ffd54f';
-        compassNeedle.style.transform = 'rotate(360deg)';
+        // 移除舊的 transform 動畫，因為 logo-vivid 已經是獨立元素
+        // compassNeedle.style.transform = 'rotate(360deg)'; 
         setTimeout(() => {
             showAlert('恭喜你！匠心地圖已然完整，微笑之心也因你的信賴而閃耀。你已理解它的真諦！請至【服務台】出示此畫面，領取你的「傳承之禮」！');
         }, 1200);
