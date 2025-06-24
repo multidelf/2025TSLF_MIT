@@ -30,7 +30,6 @@ header h1 {
     margin-bottom: 0.5em;
 }
 
-/* 主要操作提示文字 (置中醒目版) */
 .main-scan-prompt {
     text-align: center;
     font-weight: bold;
@@ -87,8 +86,19 @@ h2 { border-bottom: 2px solid #bcaaa4; padding-bottom: 10px; margin-bottom: 20px
 .story-origin p { margin-bottom: 1em; text-indent: 2em; }
 .story-origin p:last-child { margin-bottom: 0; }
 
+/* 遊戲目標與兌換說明區塊樣式 */
+#redemption-info { width: 100%; max-width: 860px; margin: 40px auto; padding: 25px; background-color: rgba(232, 245, 233, 0.9); border: 2px solid #a5d6a7; border-radius: 10px; box-sizing: border-box; text-align: center; }
+#redemption-info h2 { color: #2e7d32; }
+#redemption-info .redemption-content { text-align: left; max-width: 600px; margin: 0 auto; }
+#redemption-info p { line-height: 1.7; margin-bottom: 20px; }
+#redemption-info strong { color: #1b5e20; font-size: 1.1em; }
+#redemption-info ul { list-style-type: none; padding-left: 25px; margin: -10px 0 20px 0; }
+#redemption-info li { position: relative; margin-bottom: 8px; }
+#redemption-info li::before { content: '🎁'; position: absolute; left: -25px; top: 0; }
+.prize-notice { font-weight: bold; color: #c62828; text-align: center; font-size: 0.9em; }
+
 /* 重要注意事項區塊樣式 */
-#important-notes { width: 100%; max-width: 860px; margin: 40px auto 0 auto; padding: 20px; background-color: rgba(255, 235, 238, 0.85); border: 2px solid #ef9a9a; border-radius: 10px; box-sizing: border-box; }
+#important-notes { width: 100%; max-width: 860px; margin: 0 auto; padding: 20px; background-color: rgba(255, 235, 238, 0.85); border: 2px solid #ef9a9a; border-radius: 10px; box-sizing: border-box; }
 #important-notes h3 { text-align: center; color: #c62828; margin-top: 0; margin-bottom: 20px; font-size: 1.4em; }
 #important-notes ul { list-style-type: none; padding: 0; margin: 0; }
 #important-notes li { text-align: left; margin-bottom: 15px; padding-left: 25px; position: relative; font-size: 0.9em; line-height: 1.6; color: #4e342e; }
