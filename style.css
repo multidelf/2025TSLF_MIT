@@ -3,6 +3,11 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     background-color: #f4f1ea;
     background-image: url('images/background.png');
+    background-repeat: no-repeat;       /* 確保圖片不重複 */
+    background-size: cover;           /* 讓圖片等比例縮放，直到填滿整個畫面 */
+    background-position: center center; /* 讓圖片從中央開始顯示，確保主要部分可見 */
+    background-attachment: fixed;       /* (可選) 讓背景圖固定，頁面滾動時背景圖不動，有視差效果 */
+
     color: #5d4037;
     margin: 0;
     padding: 20px;
