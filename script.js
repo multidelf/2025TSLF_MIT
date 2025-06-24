@@ -29,8 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
         isGameWon: false 
     };
     let userData = { ...defaultUserData };
-    let animationInterval = null;
-
+    
     // --- 函式定義 ---
 
     function showAlert(message) {
@@ -38,9 +37,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('qrcode-container').style.display = 'none';
         customAlertMessage.textContent = message;
         customAlertModal.style.display = 'flex';
-        customAlertOkButton.addEventListener('click', () => {
-            customAlertModal.style.display = 'none';
-        }, { once: true });
     }
 
     function updateUserData(data) {
@@ -77,35 +73,31 @@ document.addEventListener('DOMContentLoaded', () => {
         renderCompass(userData.totalAmount); 
     }
 
+    // === 動畫函式：使用 requestAnimationFrame 讓信賴指數平滑增長 (推薦) ===
     function animateProgress(startAmount, endAmount) {
-        if (animationInterval) {
-            clearInterval(animationInterval);
-        }
-        const TOTAL_SEGMENTS = 10;
-        const duration = 1200;
-        const frameRate = 60;
-        const totalFrames = duration / (1000 / frameRate);
+        const duration = 1200; // 動畫總時長 (毫秒)
         const amountToAnimate = endAmount - startAmount;
-        const incrementPerFrame = amountToAnimate / totalFrames;
-        let currentAmount = startAmount;
-        let displayedSegments = Math.floor((startAmount / GOAL_AMOUNT) * TOTAL_SEGMENTS);
+        let startTime = null;
 
-        animationInterval = setInterval(() => {
-            currentAmount += incrementPerFrame;
-            if (currentAmount >= endAmount) {
-                currentAmount = endAmount;
-                clearInterval(animationInterval);
-                animationInterval = null;
-                renderCompass(endAmount);
-                return;
+        if (amountToAnimate <= 0) {
+            renderCompass(endAmount);
+            return;
+        }
+
+        function animationStep(currentTime) {
+            if (startTime === null) startTime = currentTime;
+            const timeElapsed = currentTime - startTime;
+            const progress = Math.min(timeElapsed / duration, 1);
+            const currentAmount = startAmount + (amountToAnimate * progress);
+            renderCompass(currentAmount);
+
+            if (progress < 1) {
+                requestAnimationFrame(animationStep);
+            } else {
+                renderCompass(endAmount); // 確保最終值精確
             }
-            const targetSegments = Math.floor((currentAmount / GOAL_AMOUNT) * TOTAL_SEGMENTS);
-            if (targetSegments > displayedSegments) {
-                displayedSegments = targetSegments;
-                const displayAmountForSegment = (displayedSegments / TOTAL_SEGMENTS) * GOAL_AMOUNT;
-                renderCompass(displayAmountForSegment);
-            }
-        }, 1000 / frameRate);
+        }
+        requestAnimationFrame(animationStep);
     }
 
     function checkWinCondition() {
@@ -140,33 +132,39 @@ document.addEventListener('DOMContentLoaded', () => {
         modalStoreName.textContent = `在 ${storeName} 消費`;
         modalStoreName.dataset.storeId = storeId;
         purchaseModal.style.display = 'flex';
-        
-        const submitHandler = () => {
-            const amount = parseInt(amountInput.value, 10);
-            if (isNaN(amount) || amount <= 0) {
-                showAlert('請輸入有效的金額！');
-                return;
-            }
-            const previousAmount = userData.totalAmount;
-            const newTotalAmount = previousAmount + amount;
-            animateProgress(previousAmount, newTotalAmount);
-            closeModal();
-            showAlert(`感謝您的支持！信賴指數增加了 ${amount} 點！`);
-            updateUserData({ ...userData, totalAmount: newTotalAmount });
-            checkWinCondition();
-        };
-
-        const cancelHandler = () => closeModal();
-        const closeModal = () => {
-             purchaseModal.style.display = 'none';
-             amountInput.value = '';
-             submitAmountButton.removeEventListener('click', submitHandler);
-             cancelButton.removeEventListener('click', cancelHandler);
-        };
-        
-        submitAmountButton.addEventListener('click', submitHandler);
-        cancelButton.addEventListener('click', cancelHandler);
     }
+
+    function handleSubmit() {
+        const amount = parseInt(amountInput.value, 10);
+        if (isNaN(amount) || amount <= 0) {
+            showAlert('請輸入有效的金額！');
+            return;
+        }
+        
+        const previousAmount = userData.totalAmount;
+        const newTotalAmount = previousAmount + amount;
+        
+        updateUserData({ ...userData, totalAmount: newTotalAmount });
+        animateProgress(previousAmount, newTotalAmount); // 呼叫新的動畫函式
+        
+        hidePurchaseModal();
+        showAlert(`感謝您的支持！信賴指數增加了 ${amount} 點！`);
+        checkWinCondition();
+    }
+    
+    function hidePurchaseModal() {
+        purchaseModal.style.display = 'none';
+        amountInput.value = '';
+    }
+
+    // --- 事件監聽器 ---
+
+    customAlertOkButton.addEventListener('click', () => {
+        customAlertModal.style.display = 'none';
+    });
+    
+    submitAmountButton.addEventListener('click', handleSubmit);
+    cancelButton.addEventListener('click', hidePurchaseModal);
 
     redeemButton.addEventListener('click', () => {
         if (confirm('確定要產生兌換碼嗎？\n請在服務台人員面前點擊此按鈕。')) {
@@ -208,11 +206,7 @@ document.addEventListener('DOMContentLoaded', () => {
         storyOriginDiv.classList.toggle('is-expanded');
         toggleStoryButton.classList.toggle('active');
         const arrow = toggleStoryButton.querySelector('.arrow');
-        if (storyOriginDiv.classList.contains('is-expanded')) {
-            arrow.textContent = '▲';
-        } else {
-            arrow.textContent = '▼';
-        }
+        arrow.textContent = storyOriginDiv.classList.contains('is-expanded') ? '▲' : '▼';
     });
 
     resetGameButton.addEventListener('click', () => {
@@ -223,6 +217,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // --- 初始化程式 ---
     function init() {
         const savedData = localStorage.getItem('eventUserData');
         if (savedData) {
@@ -230,10 +225,13 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             localStorage.setItem('eventUserData', JSON.stringify(userData));
         }
+        
         renderAll();
+        
         if (userData.isGameWon) {
              showTreasureLocation();
         }
+
         const urlParams = new URLSearchParams(window.location.search);
         const type = urlParams.get('type');
         if (type) {
