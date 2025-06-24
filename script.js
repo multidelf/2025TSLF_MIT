@@ -101,7 +101,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function handlePurchase(storeId) {
         const storeName = storeData[storeId] || storeId; 
         modalStoreName.textContent = `在 ${storeName} 消費`;
+        modalStoreName.dataset.storeId = storeId; // 暫存 storeId 以便後續使用
         purchaseModal.style.display = 'flex';
+        
         const submitHandler = () => {
             const amount = parseInt(amountInput.value, 10);
             if (isNaN(amount) || amount <= 0) {
@@ -112,14 +114,33 @@ document.addEventListener('DOMContentLoaded', () => {
             closeModal();
             showAlert(`感謝您的支持！信賴指數增加了 ${amount} 點！`);
             checkWinCondition();
+
+            // ===== START: 新增的背景記錄程式碼 =====
+            const API_URL = 'https://script.google.com/macros/s/AKfycbz-6CiVtDU251TKiQc73NYYlfg8gTqESOvAOUc1VWtFz-_g7J0a1cdgfBUZWuDDs5x0PA/exec';
+            const logData = {
+                storeId: modalStoreName.dataset.storeId,
+                storeName: storeData[modalStoreName.dataset.storeId] || modalStoreName.dataset.storeId,
+                amount: amount,
+                userId: userData.userId
+            };
+            const params = new URLSearchParams({
+                action: 'log_purchase',
+                ...logData
+            });
+            // 發送到後端，不需等待回應 (fire and forget)
+            fetch(`${API_URL}?${params.toString()}`);
+            // ===== END: 新增的背景記錄程式碼 =====
         };
+
         const cancelHandler = () => closeModal();
+        
         const closeModal = () => {
              purchaseModal.style.display = 'none';
              amountInput.value = '';
              submitAmountButton.removeEventListener('click', submitHandler);
              cancelButton.removeEventListener('click', cancelHandler);
         };
+        
         submitAmountButton.addEventListener('click', submitHandler);
         cancelButton.addEventListener('click', cancelHandler);
     }
@@ -137,7 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 .then(data => {
                     if (data.status === 'success' || data.status === 'already_generated') {
                         const qrcodeContainer = document.getElementById('qrcode-container');
-qrcodeContainer.innerHTML = '';
+                        qrcodeContainer.innerHTML = '';
                         qrcodeContainer.style.display = 'block';
                         const verificationUrl = `https://multidelf.github.io/2025TSLF_MIT/verify.html?code=${data.code}`;
                         new QRCode(qrcodeContainer, {
@@ -176,7 +197,6 @@ qrcodeContainer.innerHTML = '';
         if (savedData) {
             userData = { ...defaultUserData, ...JSON.parse(savedData) };
         } else {
-            // 如果是全新使用者，直接儲存一次預設值 (包含產生的新userId)
             localStorage.setItem('eventUserData', JSON.stringify(userData));
         }
         renderAll();
