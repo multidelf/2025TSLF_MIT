@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>兌換碼核銷系統</title>
+    <style>
+        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; text-align: center;}
+        h1 { font-size: 1.5em; }
+        input { font-size: 1.2em; padding: 10px; margin-bottom: 20px; text-transform: uppercase; width: 90%; max-width: 400px; }
+        button { font-size: 1.2em; padding: 10px 20px; cursor: pointer; }
+        #result { margin-top: 30px; font-size: 1.8em; font-weight: bold; min-height: 50px;}
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>微笑之心 - 兌換碼核銷</h1>
+    <input type="text" id="code-input" placeholder="請輸入或掃描兌換碼">
+    <button id="verify-button">手動核銷</button>
+    <div id="result"></div>
+
+    <script>
+        const codeInput = document.getElementById('code-input');
+        const verifyButton = document.getElementById('verify-button');
+        const resultDiv = document.getElementById('result');
+        
+        const API_URL = 'https://script.google.com/macros/s/AKfycbz-6CiVtDU251TKiQc73NYYlfg8gTqESOvAOUc1VWtFz-_g7J0a1cdgfBUZWuDDs5x0PA/exec';
+
+        function performVerification(code) {
+            if (!code) return;
+            resultDiv.textContent = '驗證中...';
+            resultDiv.className = '';
+            fetch(`${API_URL}?action=verify&code=${code}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        resultDiv.textContent = '✅ 核銷成功！';
+                        resultDiv.className = 'success';
+                    } else {
+                        resultDiv.textContent = `❌ ${data.message}`;
+                        resultDiv.className = 'error';
+                    }
+                    codeInput.value = '';
+                })
+                .catch(error => {
+                    resultDiv.textContent = '❌ 網路連線錯誤';
+                    resultDiv.className = 'error';
+                });
+        }
+        
+        verifyButton.addEventListener('click', () => {
+            performVerification(codeInput.value.trim().toUpperCase());
+        });
+
+        window.addEventListener('load', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const codeFromUrl = urlParams.get('code');
+            if (codeFromUrl) {
+                codeInput.value = codeFromUrl;
+                performVerification(codeFromUrl);
+            }
+        });
+    </script>
+</body>
+</html>
