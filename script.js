@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function showTreasureLocation() {
         mapBoard.style.boxShadow = '0 0 30px 10px #ffd54f';
         setTimeout(() => {
-            showAlert('恭喜你！匠心地圖已然完整，微笑之心也因你的信賴而閃耀。你已理解它的真諦！請至【服務台】出示此畫面，領取你的「傳承之禮」！');
+            showAlert('恭喜你！匠心地圖已然完整，微笑之心也因你的信賴而閃耀。你已理解它的真諦！請至【服務台】出示此畫面，領取你的「通關小禮」！');
         }, 1200);
     }
 
