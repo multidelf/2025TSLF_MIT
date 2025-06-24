@@ -12,12 +12,19 @@
         <header>
             <h1>尋找微笑之心</h1>
             <p>循著靴上微笑的指引，拼湊出匠心地圖，理解「微笑之心」的真諦。</p>
+            
+            <button id="toggle-story-button" class="story-toggle-button">
+                閱讀【緣起：爺爺的藏寶圖】故事
+                <span class="arrow">▼</span>
+            </button>
+            
             <div class="story-origin">
                 <h4>【緣起：爺爺的藏寶圖】</h4>
                 <p>在一個充滿舊物氣息的閣樓裡，年輕的設計師阿明發現了爺爺留下的一個木箱。箱子裡沒有金銀珠寶，而是一雙作工精緻、皮革柔軟的短靴，以及一張泛黃的羊皮卷。</p>
                 <p>靴子的線條優美，皮革觸感溫潤，在靴子的內側，阿明發現烙印著一個小小的微笑標誌。他拿起那張羊皮卷，上面寫著一段謎語：</p>
                 <p>「孩子，你找到了我的『旅人之靴』。但穿上它，不代表你真正擁有它。這雙靴子承載的，是名為『信賴』的重量與一份最真誠的驕傲。它，就是『微笑之心』。循著靴上微笑的指引，去尋找它誕生的根源，去尋找更多優秀的MIT產品的吧，當你理解了『微笑之心』的真諦，這雙靴子才能真正帶你走向未來......」</p>
             </div>
+
             <p class="main-scan-prompt">請使用手機相機或任何掃碼 App，掃描店家現場的 QR Code 來參與活動。</p>
         </header>
 
@@ -25,12 +32,12 @@
             <section id="map-section">
                 <h2>匠心地圖</h2>
                 <div id="map-board">
-                    <div class="map-piece" data-piece-id="M01"><img src="images/M01.png" alt="匠心碎片1"></div>
-                    <div class="map-piece" data-piece-id="M02"><img src="images/M02.png" alt="匠心碎片2"></div>
-                    <div class="map-piece" data-piece-id="M03"><img src="images/M03.png" alt="匠心碎片3"></div>
-                    <div class="map-piece" data-piece-id="M04"><img src="images/M04.png" alt="匠心碎片4"></div>
-                    <div class="map-piece" data-piece-id="M05"><img src="images/M05.png" alt="匠心碎片5"></div>
-                    <div class="map-piece" data-piece-id="M06"><img src="images/M06.png" alt="匠心碎片6"></div>
+                    <div class="map-piece" data-piece-id="M01"><img src="images/M01.png" alt="匠心碎片1" loading="lazy"></div>
+                    <div class="map-piece" data-piece-id="M02"><img src="images/M02.png" alt="匠心碎片2" loading="lazy"></div>
+                    <div class="map-piece" data-piece-id="M03"><img src="images/M03.png" alt="匠心碎片3" loading="lazy"></div>
+                    <div class="map-piece" data-piece-id="M04"><img src="images/M04.png" alt="匠心碎片4" loading="lazy"></div>
+                    <div class="map-piece" data-piece-id="M05"><img src="images/M05.png" alt="匠心碎片5" loading="lazy"></div>
+                    <div class="map-piece" data-piece-id="M06"><img src="images/M06.png" alt="匠心碎片6" loading="lazy"></div>
                 </div>
                 <p class="progress-text">匠心碎片：<span id="map-progress-text">0 / 6</span> 片</p>
             </section>
@@ -39,9 +46,7 @@
                 <h2>微笑之心</h2>
                 <div id="compass-container">
                     <img src="images/heart-base.png" alt="心形底座" class="compass-image">
-                    
                     <div id="compass-progress-bar"></div>
-
                     <img src="images/smile-logo.png" alt="微笑標誌底色" class="compass-image logo-dim">
                     <img src="images/smile-logo.png" alt="微笑標誌" class="compass-image logo-vivid">
                 </div>
