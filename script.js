@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const mapProgressText = document.getElementById('map-progress-text');
     const compassProgressBar = document.getElementById('compass-progress-bar');
     const compassProgressText = document.getElementById('compass-progress-text');
-    const logoVivid = document.querySelector('.logo-vivid'); // 選取鮮明的 Logo 圖層
+    const logoVivid = document.querySelector('.logo-vivid');
     const purchaseModal = document.getElementById('purchase-modal');
     const modalStoreName = document.getElementById('modal-store-name');
     const amountInput = document.getElementById('amount-input');
@@ -14,14 +14,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const customAlertModal = document.getElementById('custom-alert-modal');
     const customAlertMessage = document.getElementById('custom-alert-message');
     const customAlertOkButton = document.getElementById('custom-alert-ok-button');
+    const toggleStoryButton = document.getElementById('toggle-story-button');
+    const storyOriginDiv = document.querySelector('.story-origin');
 
     // --- 全局變數 ---
     const TOTAL_PIECES = 6;
     const GOAL_AMOUNT = 1500;
-    const PIECE_PREFIX = 'M';
     const storeData = {
         'A01': '鞋寶觀光工廠', 'A02': '小幫手庇護工場', 'A03': '麥子庇護工場',
-        'A04': '山谷裡的麵包店', 'A05': '轉角沒有咖啡廳',
+        'A04': '山谷裡的麵包店', 'A05': '轉角沒有咖啡廳', 'A06': '範例店家六號'
         // --- 請繼續將您所有店家的名稱填寫完畢 ---
     };
     const defaultUserData = { collectedMapPieces: [], totalAmount: 0, isGameWon: false };
@@ -61,7 +62,6 @@ document.addEventListener('DOMContentLoaded', () => {
         compassProgressBar.style.background = `conic-gradient(#ff8a65 ${percentage}%, #ffe0b2 0%)`;
         compassProgressText.textContent = `${userData.totalAmount} / ${GOAL_AMOUNT}`;
         
-        // 控制遮罩的核心邏輯
         const maskStyle = `conic-gradient(black ${percentage}%, transparent ${percentage}%)`;
         logoVivid.style.maskImage = maskStyle;
         logoVivid.style.webkitMaskImage = maskStyle;
@@ -81,8 +81,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function showTreasureLocation() {
         mapBoard.style.boxShadow = '0 0 30px 10px #ffd54f';
-        // 移除舊的 transform 動畫，因為 logo-vivid 已經是獨立元素
-        // compassNeedle.style.transform = 'rotate(360deg)'; 
         setTimeout(() => {
             showAlert('恭喜你！匠心地圖已然完整，微笑之心也因你的信賴而閃耀。你已理解它的真諦！請至【服務台】出示此畫面，領取你的「傳承之禮」！');
         }, 1200);
@@ -129,11 +127,27 @@ document.addEventListener('DOMContentLoaded', () => {
         cancelButton.addEventListener('click', cancelHandler);
     }
 
+    // 監聽故事按鈕的點擊事件
+    toggleStoryButton.addEventListener('click', () => {
+        storyOriginDiv.classList.toggle('is-expanded');
+        toggleStoryButton.classList.toggle('active');
+        const arrow = toggleStoryButton.querySelector('.arrow');
+        if (storyOriginDiv.classList.contains('is-expanded')) {
+            arrow.textContent = '▲';
+        } else {
+            arrow.textContent = '▼';
+        }
+    });
+
     function init() {
         const savedData = localStorage.getItem('eventUserData');
-        if (savedData) { userData = { ...defaultUserData, ...JSON.parse(savedData) }; }
+        if (savedData) {
+            userData = { ...defaultUserData, ...JSON.parse(savedData) };
+        }
         renderAll();
-        if (userData.isGameWon) { showTreasureLocation(); }
+        if (userData.isGameWon) {
+             showTreasureLocation();
+        }
         const urlParams = new URLSearchParams(window.location.search);
         const type = urlParams.get('type');
         if (type) {
