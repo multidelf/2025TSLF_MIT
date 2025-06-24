@@ -60,14 +60,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const percentage = Math.min((userData.totalAmount / GOAL_AMOUNT) * 100, 100);
         compassProgressBar.style.background = `conic-gradient(#ff8a65 ${percentage}%, #ffe0b2 0%)`;
         compassProgressText.textContent = `${userData.totalAmount} / ${GOAL_AMOUNT}`;
-
-        // 計算對比度的核心邏輯
-        const minContrast = 10;  // 最小對比度 (10%)
-        const maxContrast = 100; // 最大對比度 (100%)
+        
+        const minContrast = 10;
+        const maxContrast = 100;
         const progressRatio = Math.min(userData.totalAmount / GOAL_AMOUNT, 1);
         const currentContrast = minContrast + (progressRatio * (maxContrast - minContrast));
         
-        // 將計算出的對比度應用到 Logo 圖片上
         compassNeedle.style.filter = `contrast(${currentContrast}%)`;
     }
     
