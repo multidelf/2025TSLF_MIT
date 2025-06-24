@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 全局變數 ---
     const TOTAL_PIECES = 6;
-    const GOAL_AMOUNT = 1500;
+    const GOAL_AMOUNT = 500;
     const storeData = { 'A01': '鞋寶觀光工廠', 'A02': '小幫手庇護工場', 'A03': '麥子庇護工場', 'A04': '山谷裡的麵包店', 'A05': '轉角沒有咖啡廳', 'A06': '範例店家六號' };
     const defaultUserData = { 
         userId: 'user_' + Date.now() + Math.random().toString(36).substr(2, 9), 
