@@ -73,9 +73,8 @@ document.addEventListener('DOMContentLoaded', () => {
         renderCompass(userData.totalAmount); 
     }
 
-    // === 動畫函式：使用 requestAnimationFrame 讓信賴指數平滑增長 (推薦) ===
     function animateProgress(startAmount, endAmount) {
-        const duration = 1200; // 動畫總時長 (毫秒)
+        const duration = 1200;
         const amountToAnimate = endAmount - startAmount;
         let startTime = null;
 
@@ -94,7 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (progress < 1) {
                 requestAnimationFrame(animationStep);
             } else {
-                renderCompass(endAmount); // 確保最終值精確
+                renderCompass(endAmount);
             }
         }
         requestAnimationFrame(animationStep);
@@ -131,8 +130,35 @@ document.addEventListener('DOMContentLoaded', () => {
         const storeName = storeData[storeId] || storeId; 
         modalStoreName.textContent = `在 ${storeName} 消費`;
         modalStoreName.dataset.storeId = storeId;
+        modalStoreName.dataset.storeName = storeName; // 將店家名稱也存起來
         purchaseModal.style.display = 'flex';
     }
+
+    // ==========================================================
+    // ===== 新增的函式，用來將消費紀錄傳送到後端 =====
+    // ==========================================================
+    function logPurchaseToServer(storeId, storeName, amount, userId) {
+        const API_URL = 'https://script.google.com/macros/s/AKfycbz-6CiVtDU251TKiQc73NYYlfg8gTqESOvAOUc1VWtFz-_g7J0a1cdgfBUZWuDDs5x0PA/exec';
+        
+        // 使用 URLSearchParams 來建立查詢字串，可以自動處理特殊字元
+        const params = new URLSearchParams({
+            action: 'log_purchase',
+            storeId: storeId,
+            storeName: storeName,
+            amount: amount,
+            userId: userId
+        });
+
+        const urlWithParams = `${API_URL}?${params.toString()}`;
+
+        // 使用 navigator.sendBeacon 是最佳選擇，如果瀏覽器不支援，則使用 fetch 作為備案
+        if (navigator.sendBeacon) {
+            navigator.sendBeacon(urlWithParams);
+        } else {
+            fetch(urlWithParams, { method: 'POST', mode: 'no-cors' });
+        }
+    }
+
 
     function handleSubmit() {
         const amount = parseInt(amountInput.value, 10);
@@ -144,11 +170,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const previousAmount = userData.totalAmount;
         const newTotalAmount = previousAmount + amount;
         
+        // 從 modal 的 dataset 中取得店家 ID 和名稱
+        const storeId = modalStoreName.dataset.storeId; 
+        const storeName = modalStoreName.dataset.storeName;
+
         updateUserData({ ...userData, totalAmount: newTotalAmount });
-        animateProgress(previousAmount, newTotalAmount); // 呼叫新的動畫函式
+        animateProgress(previousAmount, newTotalAmount);
         
         hidePurchaseModal();
         showAlert(`感謝您的支持！信賴指數增加了 ${amount} 點！`);
+        
+        // ==========================================================
+        // ===== 【這就是觸發點】在背景默默地將這筆消費紀錄傳送到後端 =====
+        // ==========================================================
+        logPurchaseToServer(storeId, storeName, amount, userData.userId);
+        
         checkWinCondition();
     }
     
