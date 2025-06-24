@@ -139,7 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         const qrcodeContainer = document.getElementById('qrcode-container');
 qrcodeContainer.innerHTML = '';
                         qrcodeContainer.style.display = 'block';
-                        const verificationUrl = `https://your-domain.com/verify.html?code=${data.code}`;
+                        const verificationUrl = `https://multidelf.github.io/2025TSLF_MIT/verify.html?code=${data.code}`;
                         new QRCode(qrcodeContainer, {
                             text: verificationUrl,
                             width: 180, height: 180,
