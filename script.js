@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // 初始化號角音效合成器
             if (!fanfareSynth) {
                 fanfareSynth = new Tone.PolySynth(Tone.Synth, {
-                    volume: -15, // <-- 新增音量控制，-10dB 代表比預設小聲
+                    volume: -10, // <-- 新增音量控制，-10dB 代表比預設小聲
                     oscillator: { type: 'triangle8' },
                     envelope: { attack: 0.02, decay: 0.3, sustain: 0.4, release: 0.5 }
                 }).toDestination();
@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // 初始化累積點數音效合成器
             if (!purchaseSynth) {
                 purchaseSynth = new Tone.Synth({
-                    volume: -12, // <-- 新增音量控制，-12dB 代表比號角聲更小聲一點
+                    volume: -15, // <-- 新增音量控制，-12dB 代表比號角聲更小聲一點
                     oscillator: { type: 'sine' },
                     envelope: { attack: 0.01, decay: 0.1, sustain: 0.2, release: 0.2 }
                 }).toDestination();
