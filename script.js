@@ -42,6 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // 初始化號角音效合成器
             if (!fanfareSynth) {
                 fanfareSynth = new Tone.PolySynth(Tone.Synth, {
+                    volume: -15, // <-- 新增音量控制，-10dB 代表比預設小聲
                     oscillator: { type: 'triangle8' },
                     envelope: { attack: 0.02, decay: 0.3, sustain: 0.4, release: 0.5 }
                 }).toDestination();
@@ -80,6 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // 初始化累積點數音效合成器
             if (!purchaseSynth) {
                 purchaseSynth = new Tone.Synth({
+                    volume: -12, // <-- 新增音量控制，-12dB 代表比號角聲更小聲一點
                     oscillator: { type: 'sine' },
                     envelope: { attack: 0.01, decay: 0.1, sustain: 0.2, release: 0.2 }
                 }).toDestination();
@@ -183,7 +185,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const newCollectedPieces = [...userData.collectedMapPieces, pieceId].sort();
             updateUserData({ ...userData, collectedMapPieces: newCollectedPieces });
             renderMap();
-            showAlert(`太棒了！你找到了一位「綠色寶寶夥伴」，祂加入了你的隊伍！`);
+            showAlert(`太棒了！你找到了一位「綠色寶寶夥伴」，他加入了你的隊伍！`);
             playSound('discover', pieceId); // <-- 播放對應夥伴的音效
             checkWinCondition();
         } else {
@@ -334,7 +336,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ===== START: 新增的音訊解鎖函式 =====
     function unlockAudio() {
-        Tone.start();
+        if (Tone.context.state !== 'running') {
+            Tone.start();
+        }
         console.log('AudioContext unlocked!');
         // 解鎖後就移除監聽器，這個動作只需要執行一次
         document.body.removeEventListener('click', unlockAudio);
