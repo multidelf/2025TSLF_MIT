@@ -14,7 +14,7 @@ body {
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    box-sizing: border-box; ㄇ
+    box-sizing: border-box; 
 }
 
 #game-container {
@@ -35,69 +35,58 @@ section { flex: 1; min-width: 300px; }
 h2 { border-bottom: 2px solid #81D4FA; padding-bottom: 10px; margin-bottom: 20px; font-size: 1.8em; color: #0288D1; } /* 中藍色標題與淡藍色底線 */
 .progress-text { font-size: 1.2em; font-weight: bold; margin-top: 20px; }
 
-/* 故事收合/展開樣式 */
-.story-toggle-button {
-    background-color: #03A9F4; /* 天空藍按鈕 */
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 1em;
-    font-weight: bold;
-    margin-top: 20px;
-    transition: background-color 0.3s;
+/* ===== START: 打字機效果樣式 ===== */
+#story-typewriter-container {
+    background-color: rgba(187, 222, 251, 0.3); /* 使用主題中的淡藍色系做淡淡的背景 */
+    border-left: 4px solid #81D4FA; /* 左側的強調線 */
+    margin: 30px auto;
+    padding: 20px;
+    max-width: 600px;
+    min-height: 80px; /* 給予一個最小高度以防版面跳動 */
+    display: flex;
+    align-items: center;
+    justify-content: flex-start; /* 文字從左開始 */
+    box-sizing: border-box;
+    border-radius: 0 8px 8px 0;
 }
-.story-toggle-button:hover {
-    background-color: #0288D1; /* 滑鼠懸停時變深 */
-}
-.story-toggle-button .arrow {
-    display: inline-block;
-    transition: transform 0.3s ease-in-out;
-}
-.story-toggle-button.active .arrow {
-    transform: rotate(180deg);
-}
-.story-origin {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.7s ease-in-out, margin-top 0.7s, padding-top 0.7s;
-    margin-top: 0;
-    padding-top: 0;
-    border-top: none;
-    max-width: 600px; 
-    margin-left: auto; 
-    margin-right: auto; 
-    text-align: left; 
-    font-size: 1rem;
-    line-height: 1.7; 
-    color: #546E7A; /* 故事文字使用藍灰色 */
-}
-.story-origin.is-expanded {
-    max-height: 1000px;
-    margin-top: 30px;
-    padding-top: 20px;
-    border-top: 1px solid #B3E5FC; /* 淡藍色分隔線 */
-}
-.story-origin h4 { text-align: center; margin-bottom: 1em; font-weight: bold; font-size: 1.1em; color: #0288D1; }
-.story-origin p { margin-bottom: 1em; text-indent: 2em; }
-.story-origin p:last-child { margin-bottom: 0; }
 
-/* ===== START: 已整合的夥伴區塊樣式 ===== */
+#story-text {
+    font-family: 'Courier New', Courier, monospace; /* 使用等寬字體更有打字機的感覺 */
+    font-size: 1.1em;
+    color: #01579B; /* 使用較深的藍色以確保可讀性 */
+    text-align: left;
+    width: 100%;
+    line-height: 1.6;
+}
+
+#story-text::after {
+    content: '▋';
+    animation: blink 0.7s infinite;
+    color: #03A9F4;
+    font-weight: bold;
+    margin-left: 2px;
+}
+
+@keyframes blink {
+    50% {
+        opacity: 0;
+    }
+}
+/* ===== END: 打字機效果樣式 ===== */
+
+/* 夥伴區塊樣式 */
 #map-board { 
     display: grid; 
-    grid-template-columns: repeat(2, 1fr); /* 2欄 */
-    grid-template-rows: repeat(2, 1fr);    /* 2列 */
-    gap: 5px;                             /* 增加間距 */
+    grid-template-columns: repeat(2, 1fr); 
+    grid-template-rows: repeat(2, 1fr);
+    gap: 10px;
     width: 100%; 
-    max-width: 300px;                      /* 調整最大寬度以適應2x2 */
+    max-width: 300px;
     margin: 0 auto; 
-    border: 5px solid #bbdefb;             /* 套用天空之城風的邊框顏色 */
-    background-color: rgba(227, 242, 253, 0.7); /* 套用天空之城風的背景顏色 */
-    padding: 5px; 
+    border: 5px solid #bbdefb;
+    background-color: rgba(227, 242, 253, 0.7);
+    padding: 10px; 
 }
-/* ===== END: 已整合的夥伴區塊樣式 ===== */
-
 .map-piece { width: 100%; padding-bottom: 100%; position: relative; }
 .map-piece img { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; border-radius: 4px; opacity: 0.35; filter: grayscale(80%) brightness(0.9); transition: all 0.5s ease-in-out; }
 .map-piece.unlocked img { opacity: 1; filter: grayscale(0%) brightness(1); transform: scale(1.05); box-shadow: 0 0 10px rgba(0,0,0,0.3); }
@@ -109,8 +98,6 @@ h2 { border-bottom: 2px solid #81D4FA; padding-bottom: 10px; margin-bottom: 20px
 .logo-dim { filter: contrast(5%); }
 .logo-vivid { 
     filter: contrast(100%); 
-    /* 提醒：進度條顏色是在 script.js 中控制的 */
-    /* 建議將 conic-gradient 的顏色改為金色 (#FFD700) 以搭配新主題 */
     mask-image: conic-gradient(black 0%, transparent 0%); 
     -webkit-mask-image: conic-gradient(black 0%, transparent 0%); 
 }
@@ -120,9 +107,9 @@ h2 { border-bottom: 2px solid #81D4FA; padding-bottom: 10px; margin-bottom: 20px
 .modal-content { background: #fff; padding: 30px; border-radius: 10px; text-align: center; width: 90%; max-width: 400px; }
 .modal-content button { padding: 10px 20px; font-size: 1em; cursor: pointer; border: none; border-radius: 5px; margin: 0 5px; }
 .modal-content input { width: 80%; padding: 10px; margin: 15px 0; font-size: 1.2em; text-align: center; border: 2px solid #ccc; border-radius: 5px; }
-#submit-amount-button { background-color: #03A9F4; color: white; } /* 天空藍 */
-#cancel-button { background-color: #e57373; color: white; } /* 取消按鈕保留紅色系 */
-#custom-alert-ok-button { background-color: #03A9F4; color: white; padding: 10px 30px; } /* 天空藍 */
+#submit-amount-button { background-color: #03A9F4; color: white; }
+#cancel-button { background-color: #e57373; color: white; }
+#custom-alert-ok-button { background-color: #03A9F4; color: white; padding: 10px 30px; }
 
 /* 遊戲目標與兌換說明區塊樣式 */
 #redemption-info { width: 100%; max-width: 860px; margin: 40px auto; padding: 25px; background-color: rgba(225, 245, 254, 0.9); border: 2px solid #81D4FA; border-radius: 10px; box-sizing: border-box; text-align: center; }
@@ -132,10 +119,10 @@ h2 { border-bottom: 2px solid #81D4FA; padding-bottom: 10px; margin-bottom: 20px
 #redemption-info strong { color: #01579B; font-size: 1.1em; }
 #redemption-info ul { list-style-type: none; padding-left: 25px; margin: -10px 0 20px 0; }
 #redemption-info li { position: relative; margin-bottom: 8px; }
-#redemption-info li::before { content: '✨'; position: absolute; left: -25px; top: 0; } /* 將禮物圖示換成星星 */
+#redemption-info li::before { content: '✨'; position: absolute; left: -25px; top: 0; }
 .prize-notice { font-weight: bold; color: #c62828; text-align: center; font-size: 0.9em; }
 
-/* 重要注意事項區塊樣式 (保留紅色系以示警告) */
+/* 重要注意事項區塊樣式 */
 #important-notes { width: 100%; max-width: 860px; margin: 0 auto; padding: 20px; background-color: rgba(255, 235, 238, 0.85); border: 2px solid #ef9a9a; border-radius: 10px; box-sizing: border-box; }
 #important-notes h3 { text-align: center; color: #c62828; margin-top: 0; margin-bottom: 20px; font-size: 1.4em; }
 #important-notes ul { list-style-type: none; padding: 0; margin: 0; }
@@ -166,4 +153,4 @@ h2 { border-bottom: 2px solid #81D4FA; padding-bottom: 10px; margin-bottom: 20px
 
 /* RWD 響應式設計 */
 @media (max-width: 768px) { header h1 { font-size: 2em; } h2 { font-size: 1.5em; } #game-container { padding: 15px; } #main-content { gap: 20px; } }
-@media (max-width: 480px) { body { padding: 10px; } header h1 { font-size: 1.8em; } h2 { font-size: 1.3em; } .progress-text { font-size: 1em; } #compass-container { width: 150px; height: 150px; } .story-origin p {text-indent: 1.5em;} }
+@media (max-width: 480px) { body { padding: 10px; } header h1 { font-size: 1.8em; } h2 { font-size: 1.3em; } .progress-text { font-size: 1em; } #compass-container { width: 150px; height: 150px; } #story-typewriter-container { padding: 15px; } #story-text { font-size: 1em; } }
