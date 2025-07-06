@@ -3,21 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>微笑之心與失散的綠色寶寶夥伴</title>
+    <title>微笑之心與失落的綠色寶寶夥伴</title>
     <link rel="stylesheet" href="style.css">
+    <!-- ===== START: 新增音效庫 ===== -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <!-- ===== END: 新增音效庫 ===== -->
 </head>
 <body>
 
     <div id="game-container">
         <header>
-            <h1>微笑之心與失散的夥伴</h1>
-            <p>一一找回失散的夥伴，並用您的支持為「微笑之心」注入能量！</p>
+            <h1>微笑之心與失落的夥伴</h1>
+            <p>一一找回失落的夥伴，並用您的支持為「微笑之心」注入能量！</p>
             
-            <!-- ===== START: 已替換為打字機故事容器 ===== -->
             <div id="story-typewriter-container">
                 <p id="story-text"></p>
             </div>
-            <!-- ===== END: 已替換為打字機故事容器 ===== -->
 
             <p class="main-scan-prompt">請使用手機相機掃描店家現場的 QR Code 來參與活動。</p>
         </header>
@@ -26,7 +27,6 @@
             <section id="map-section">
                 <h2>尋找綠色寶寶夥伴</h2>
                 <div id="map-board">
-                    <!-- 已將6片改為4片 -->
                     <div class="map-piece" data-piece-id="M01"><img src="images/M01.png" alt="夥伴一" loading="lazy"></div>
                     <div class="map-piece" data-piece-id="M02"><img src="images/M02.png" alt="夥伴二" loading="lazy"></div>
                     <div class="map-piece" data-piece-id="M03"><img src="images/M03.png" alt="夥伴三" loading="lazy"></div>
@@ -51,7 +51,7 @@
         <section id="redemption-info">
             <h2>遊戲流程 & 兌換說明</h2>
             <div class="redemption-content">
-                <p><strong>最終目標：</strong><br>當「四位綠色寶寶夥伴」全部找到，並且透過消費MIT商品來讓「微笑之心」注入能量，當信賴點數累積滿 500 時，您就達成了最終目標！</p>
+                <p><strong>最終目標：</strong><br>當「四位夥伴」全部找到，並且「微笑之心」的信賴點數累積滿 500 時，您就達成了最終目標！</p>
                 <p><strong>兌換獎品：</strong><br>達成目標後，您將有資格兌換我們為您準備的活動紀念獎。</p>
                 <ul><li>一份充滿心意的「MIT小禮」</li><li>它象徵著您對在地品牌的信賴與支持</li></ul>
                 <p><strong>如何兌換：</strong><br>當您在網頁上看到產生專屬QR CODE按鈕後，即可點擊按鈕產生專屬兌換碼，並親至「大會服務台」，向工作人員出示您手機上的 QR Code 畫面，核對無誤後即可兌換。</p>
