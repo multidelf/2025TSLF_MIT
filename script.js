@@ -1,6 +1,9 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- DOM元素定義 ---
+    const mainContent = document.getElementById('main-content'); // 新增
+    const mapSection = document.getElementById('map-section'); // 新增
+    const compassSection = document.getElementById('compass-section'); // 新增
     const mapBoard = document.getElementById('map-board');
     const mapProgressText = document.getElementById('map-progress-text');
     const compassProgressText = document.getElementById('compass-progress-text');
@@ -28,58 +31,51 @@ document.addEventListener('DOMContentLoaded', () => {
         isGameWon: false 
     };
     let userData = { ...defaultUserData };
-    let fanfareSynth, purchaseSynth; // 將兩種音效合成器設為全局變數
+    let fanfareSynth, purchaseSynth;
 
     // --- 函式定義 ---
 
-    // ===== START: 整合後的音效函式 =====
     function playSound(type, detail = null) {
-        // 確保音訊功能已由使用者互動啟用
         Tone.start();
         const now = Tone.now();
 
         if (type === 'discover') {
-            // 初始化號角音效合成器
             if (!fanfareSynth) {
                 fanfareSynth = new Tone.PolySynth(Tone.Synth, {
-                    volume: -20,
+                    volume: -25,
                     oscillator: { type: 'triangle8' },
                     envelope: { attack: 0.02, decay: 0.3, sustain: 0.4, release: 0.5 }
                 }).toDestination();
             }
-            fanfareSynth.releaseAll(); // 停止任何正在播放的聲音
-
-            // 根據夥伴ID播放不同旋律
+            fanfareSynth.releaseAll();
             switch (detail) {
-                case 'M01': // 旅程序曲
+                case 'M01':
                     fanfareSynth.triggerAttackRelease(["C4"], "8n", now);
                     fanfareSynth.triggerAttackRelease(["E4"], "8n", now + 0.3);
                     fanfareSynth.triggerAttackRelease(["G4"], "8n", now + 0.6);
                     fanfareSynth.triggerAttackRelease(["C5"], "2n", now + 0.9);
                     break;
-                case 'M02': // 王者之聲
+                case 'M02':
                     fanfareSynth.triggerAttackRelease(["C3", "G3", "C4"], "2n", now);
                     fanfareSynth.triggerAttackRelease(["G3", "D4", "G4"], "2n", now + 0.6);
                     fanfareSynth.triggerAttackRelease(["C4", "E4", "G4"], "2n", now + 1.2);
                     break;
-                case 'M03': // 莊嚴宣告
+                case 'M03':
                     fanfareSynth.triggerAttackRelease(["C4", "E4", "G4"], "4n", now);
                     fanfareSynth.triggerAttackRelease(["F4", "A4", "C5"], "4n", now + 0.5);
                     fanfareSynth.triggerAttackRelease(["C5", "E5"], "4n", now + 1.0);
                     break;
-                case 'M04': // 發現時刻
+                case 'M04':
                     fanfareSynth.triggerAttackRelease(["A4", "C5", "E5"], "4n", now);
                     fanfareSynth.triggerAttackRelease(["G4", "B4", "D5"], "4n", now + 0.5);
                     fanfareSynth.triggerAttackRelease(["C5", "E5", "G5"], "2n", now + 1.0);
                     break;
-                default: // 預設音效
+                default:
                     fanfareSynth.triggerAttackRelease(["C5", "E5", "G5"], "4n", now);
                     break;
             }
         } 
-        // **注意：'purchase' 的音效邏輯已移至 animateProgress 函式中**
     }
-    // ===== END: 整合後的音效函式 =====
 
     function showAlert(message) {
         document.getElementById('qrcode-container').innerHTML = '';
@@ -122,7 +118,6 @@ document.addEventListener('DOMContentLoaded', () => {
         renderCompass(userData.totalAmount); 
     }
 
-    // ===== START: 已整合音效的動畫函式 =====
     function animateProgress(startAmount, endAmount) {
         const duration = 2000;
         const amountToAnimate = endAmount - startAmount;
@@ -133,7 +128,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // 初始化累積點數音效合成器
         if (!purchaseSynth) {
             purchaseSynth = new Tone.Synth({
                 volume: -30,
@@ -142,7 +136,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }).toDestination();
         }
 
-        // 定義播放音效的進度里程碑 (0.1 = 10%)
         const soundMilestones = [0.1, 0.25, 0.4, 0.55, 0.7, 0.85];
         const notesToPlay = ["C6", "E6", "G6", "C7", "E7", "G7"];
         let milestonesReached = 0;
@@ -155,7 +148,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             renderCompass(currentAmount);
 
-            // 檢查是否已達到播放音效的里程碑
             if (milestonesReached < soundMilestones.length && progress >= soundMilestones[milestonesReached]) {
                 const now = Tone.now();
                 purchaseSynth.triggerAttackRelease(notesToPlay[milestonesReached], "16n", now);
@@ -166,14 +158,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 requestAnimationFrame(animationStep);
             } else {
                 renderCompass(endAmount);
-                // 動畫結束時可以選擇播放一個最終音效
                 const now = Tone.now();
                 purchaseSynth.triggerAttackRelease("C8", "8n", now);
             }
         }
         requestAnimationFrame(animationStep);
     }
-    // ===== END: 已整合音效的動畫函式 =====
 
     function checkWinCondition() {
         if (userData.isGameWon) return; 
@@ -190,25 +180,18 @@ document.addEventListener('DOMContentLoaded', () => {
         redeemButton.style.display = 'block';
     }
 
-    // ===== START: 已修改音效觸發時機 =====
     function handleDiscover(pieceId) {
         if (!userData.collectedMapPieces.includes(pieceId)) {
             const newCollectedPieces = [...userData.collectedMapPieces, pieceId].sort();
             updateUserData({ ...userData, collectedMapPieces: newCollectedPieces });
             renderMap();
             showAlert(`太棒了！你找到了一位「綠色寶寶夥伴」，他加入了你的隊伍！`);
-            
-            // 綁定一個一次性的點擊事件，在使用者按下 "確定" 後播放音效
-            customAlertOkButton.addEventListener('click', () => {
-                playSound('discover', pieceId);
-            }, { once: true }); // { once: true } 確保這個事件只觸發一次
-
+            customAlertOkButton.addEventListener('click', () => playSound('discover', pieceId), { once: true });
             checkWinCondition();
         } else {
             showAlert('這位夥伴你已經找到過了喔！');
         }
     }
-    // ===== END: 已修改音效觸發時機 =====
 
     function handlePurchase(storeId) {
         const storeName = storeData[storeId] || storeId; 
@@ -238,7 +221,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // ===== START: 已修改音效觸發時機 =====
     function handleSubmit() {
         const amount = parseInt(amountInput.value, 10);
         if (isNaN(amount) || amount <= 0) {
@@ -253,8 +235,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const storeName = modalStoreName.dataset.storeName;
 
         updateUserData({ ...userData, totalAmount: newTotalAmount });
-        
-        // 現在只需要呼叫動畫函式，它會自己處理音效
         animateProgress(previousAmount, newTotalAmount);
         
         hidePurchaseModal();
@@ -264,7 +244,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         checkWinCondition();
     }
-    // ===== END: 已修改音效觸發時機 =====
     
     function hidePurchaseModal() {
         purchaseModal.style.display = 'none';
@@ -295,9 +274,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-
     // --- 事件監聽器 ---
-
     customAlertOkButton.addEventListener('click', () => {
         customAlertModal.style.display = 'none';
     });
@@ -367,6 +344,19 @@ document.addEventListener('DOMContentLoaded', () => {
             localStorage.setItem('eventUserData', JSON.stringify(userData));
         }
         
+        // ===== START: 新增的動態版面調整 =====
+        const urlParams = new URLSearchParams(window.location.search);
+        const type = urlParams.get('type');
+
+        if (type === 'discover') {
+            // 如果是掃描探索碼，將「尋找夥伴」區塊移到最前面
+            mainContent.insertBefore(mapSection, mainContent.firstChild);
+        } else {
+            // 預設或掃描消費碼時，將「微笑之心」區塊移到最前面
+            mainContent.insertBefore(compassSection, mainContent.firstChild);
+        }
+        // ===== END: 新增的動態版面調整 =====
+
         renderAll();
         
         if (userData.isGameWon) {
@@ -376,8 +366,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.addEventListener('click', unlockAudio);
         document.body.addEventListener('touchstart', unlockAudio);
 
-        const urlParams = new URLSearchParams(window.location.search);
-        const type = urlParams.get('type');
         if (type) {
             if (type === 'discover') {
                 const pieceId = urlParams.get('piece_id');
