@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // 初始化號角音效合成器
             if (!fanfareSynth) {
                 fanfareSynth = new Tone.PolySynth(Tone.Synth, {
-                    volume: -10, // <-- 新增音量控制，-10dB 代表比預設小聲
+                    volume: -12, // <-- 新增音量控制，-10dB 代表比預設小聲
                     oscillator: { type: 'triangle8' },
                     envelope: { attack: 0.02, decay: 0.3, sustain: 0.4, release: 0.5 }
                 }).toDestination();
@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // 初始化累積點數音效合成器
             if (!purchaseSynth) {
                 purchaseSynth = new Tone.Synth({
-                    volume: -15, // <-- 新增音量控制，-12dB 代表比號角聲更小聲一點
+                    volume: -20, // <-- 新增音量控制，-12dB 代表比號角聲更小聲一點
                     oscillator: { type: 'sine' },
                     envelope: { attack: 0.01, decay: 0.1, sustain: 0.2, release: 0.2 }
                 }).toDestination();
@@ -186,7 +186,14 @@ document.addEventListener('DOMContentLoaded', () => {
             updateUserData({ ...userData, collectedMapPieces: newCollectedPieces });
             renderMap();
             showAlert(`太棒了！你找到了一位「綠色寶寶夥伴」，他加入了你的隊伍！`);
-            playSound('discover', pieceId); // <-- 播放對應夥伴的音效
+            
+            // ===== START: 音效觸發點修改 =====
+            // 綁定一個一次性的點擊事件，在使用者按下 "確定" 後播放音效
+            customAlertOkButton.addEventListener('click', () => {
+                playSound('discover', pieceId);
+            }, { once: true }); // { once: true } 確保這個事件只觸發一次
+            // ===== END: 音效觸發點修改 =====
+
             checkWinCondition();
         } else {
             showAlert('這位夥伴你已經找到過了喔！');
@@ -239,7 +246,13 @@ document.addEventListener('DOMContentLoaded', () => {
         
         hidePurchaseModal();
         showAlert(`「微笑之心」吸收了 ${amount} 點純粹的信賴，變得更溫暖了！`);
-        playSound('purchase'); // <-- 播放累積點數的音效
+        
+        // ===== START: 音效觸發點修改 =====
+        // 綁定一個一次性的點擊事件，在使用者按下 "確定" 後播放音效
+        customAlertOkButton.addEventListener('click', () => {
+            playSound('purchase');
+        }, { once: true });
+        // ===== END: 音效觸發點修改 =====
         
         logPurchaseToServer(storeId, storeName, amount, userData.userId);
         
