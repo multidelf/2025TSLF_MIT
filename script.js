@@ -13,46 +13,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const customAlertModal = document.getElementById('custom-alert-modal');
     const customAlertMessage = document.getElementById('custom-alert-message');
     const customAlertOkButton = document.getElementById('custom-alert-ok-button');
-    const toggleStoryButton = document.getElementById('toggle-story-button');
-    const storyOriginDiv = document.querySelector('.story-origin');
+    const storyTextElement = document.getElementById('story-text'); // 新增打字機的文字元素
     const redeemButton = document.getElementById('redeem-button');
     const resetGameButton = document.getElementById('reset-game-button');
 
     // --- 全局變數 ---
-    const TOTAL_PIECES = 4; // ===== 已修改為 4 =====
+    const TOTAL_PIECES = 4;
     const GOAL_AMOUNT = 500;
-    const storeData = { 
-        'A01': '酷頂合穩實業有限公司', 
-        'A02': '廣福毛巾股份有限公司', 
-        'A03': '上比實業有限公司', 
-        'A04': '新聯昌針織有限公司', 
-        'A05': '欣合信股份有限公司(BAW)', 
-        'A06': '新科紡科技工程有限公司',
-        'A07': '台灣日用織品股份有限公司',
-        'A08': '偉榮棉織廠',
-        'A09': '恆裕企業社',
-        'A10': '元葵有限公司',
-        'A11': 'deBo Bags',
-        'A12': '元艇企業有限公司',
-        'A13': '足好有限公司',
-        'A14': '台灣儂儂褲襪股份有限公司',
-        'A15': '村林欣國際有限公司',
-        'A16': '四季織企業有限公司',
-        'A17': '聖手企業有限公司',
-        'A18': '仁富內衣實業有限公司',
-        'A19': '芃果企業有限公司',
-        'A20': '斯傑利企業有限公司',
-        'A21': '金頂鞋業',
-        'A22': '織步加服飾有限公司',
-        'A23': '雅伯斯國際通商有限公司',
-        'A24': '信發行有限公司',
-        'A25': '和悅開發有限公司',
-        'A26': '諾鎷客企業社',
-        'A27': '九億開發有限公司',
-        'A28': '喬尼有限公司',
-        'A29': '華果企業有限公司',
-        'A30': '龍峰開發有限公司'
-    };
+    const storeData = { 'A01': '酷頂合穩實業有限公司', 'A02': '廣福毛巾股份有限公司', 'A03': '上比實業有限公司', 'A04': '新聯昌針織有限公司', 'A05': '欣合信股份有限公司(BAW)', 'A06': '新科紡科技工程有限公司', 'A07': '台灣日用織品股份有限公司', 'A08': '偉榮棉織廠', 'A09': '恆裕企業社', 'A10': '元葵有限公司', 'A11': 'deBo Bags', 'A12': '元艇企業有限公司', 'A13': '足好有限公司', 'A14': '台灣儂儂褲襪股份有限公司', 'A15': '村林欣國際有限公司', 'A16': '四季織企業有限公司', 'A17': '聖手企業有限公司', 'A18': '仁富內衣實業有限公司', 'A19': '芃果企業有限公司', 'A20': '斯傑利企業有限公司', 'A21': '金頂鞋業', 'A22': '織步加服飾有限公司', 'A23': '雅伯斯國際通商有限公司', 'A24': '信發行有限公司', 'A25': '和悅開發有限公司', 'A26': '諾鎷客企業社', 'A27': '九億開發有限公司', 'A28': '喬尼有限公司', 'A29': '華果企業有限公司', 'A30': '龍峰開發有限公司' };
     const defaultUserData = { 
         userId: 'user_' + Date.now() + Math.random().toString(36).substr(2, 9), 
         collectedMapPieces: [], 
@@ -150,7 +118,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const newCollectedPieces = [...userData.collectedMapPieces, pieceId].sort();
             updateUserData({ ...userData, collectedMapPieces: newCollectedPieces });
             renderMap();
-            // ===== 已更新提示文字 =====
             showAlert(`太棒了！你找到了一位「綠色寶寶夥伴」，祂加入了你的隊伍！`);
             checkWinCondition();
         } else {
@@ -203,7 +170,6 @@ document.addEventListener('DOMContentLoaded', () => {
         animateProgress(previousAmount, newTotalAmount);
         
         hidePurchaseModal();
-        // ===== 已更新提示文字 =====
         showAlert(`「微笑之心」吸收了 ${amount} 點純粹的信賴，變得更溫暖了！`);
         
         logPurchaseToServer(storeId, storeName, amount, userData.userId);
@@ -215,6 +181,34 @@ document.addEventListener('DOMContentLoaded', () => {
         purchaseModal.style.display = 'none';
         amountInput.value = '';
     }
+
+    // ===== START: 打字機效果邏輯 =====
+    const storySnippets = [
+        "您是一位熱衷探尋台灣優質寶物的「MIT收藏家」...",
+        "偶然的機會你得到一顆「微笑之心」，並得知需要找到四位失散的「綠色寶寶夥伴」...",
+        "您的旅途就此展開：找回夥伴，並用您的支持為「微笑之心」注入能量！"
+    ];
+    let snippetIndex = 0;
+    let charIndex = 0;
+    let typingTimeout;
+
+    function typeWriter() {
+        if (charIndex < storySnippets[snippetIndex].length) {
+            storyTextElement.textContent += storySnippets[snippetIndex].charAt(charIndex);
+            charIndex++;
+            typingTimeout = setTimeout(typeWriter, 100); // 打字速度
+        } else {
+            // 打完一句後，停留4秒，然後換下一句
+            typingTimeout = setTimeout(() => {
+                storyTextElement.textContent = '';
+                charIndex = 0;
+                snippetIndex = (snippetIndex + 1) % storySnippets.length;
+                typeWriter();
+            }, 4000);
+        }
+    }
+    // ===== END: 打字機效果邏輯 =====
+
 
     // --- 事件監聽器 ---
 
@@ -261,13 +255,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    toggleStoryButton.addEventListener('click', () => {
-        storyOriginDiv.classList.toggle('is-expanded');
-        toggleStoryButton.classList.toggle('active');
-        const arrow = toggleStoryButton.querySelector('.arrow');
-        arrow.textContent = storyOriginDiv.classList.contains('is-expanded') ? '▲' : '▼';
-    });
-
+    // toggleStoryButton 的事件監聽器已被移除
+    
     resetGameButton.addEventListener('click', () => {
         const isConfirmed = window.confirm('您確定要清除所有遊戲紀錄並從頭開始嗎？\n這個操作無法復原！');
         if (isConfirmed) {
@@ -303,6 +292,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             history.replaceState(null, '', window.location.pathname);
         }
+        
+        // 啟動打字機效果
+        typeWriter();
     }
 
     init();
