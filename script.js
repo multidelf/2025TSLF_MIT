@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const customAlertModal = document.getElementById('custom-alert-modal');
     const customAlertMessage = document.getElementById('custom-alert-message');
     const customAlertOkButton = document.getElementById('custom-alert-ok-button');
-    const storyTextElement = document.getElementById('story-text'); // 新增打字機的文字元素
+    const storyTextElement = document.getElementById('story-text');
     const redeemButton = document.getElementById('redeem-button');
     const resetGameButton = document.getElementById('reset-game-button');
 
@@ -28,8 +28,73 @@ document.addEventListener('DOMContentLoaded', () => {
         isGameWon: false 
     };
     let userData = { ...defaultUserData };
-    
+    let fanfareSynth, purchaseSynth; // 將兩種音效合成器設為全局變數
+
     // --- 函式定義 ---
+
+    // ===== START: 整合後的音效函式 =====
+    function playSound(type, detail = null) {
+        // 確保音訊功能已由使用者互動啟用
+        Tone.start();
+        const now = Tone.now();
+
+        if (type === 'discover') {
+            // 初始化號角音效合成器
+            if (!fanfareSynth) {
+                fanfareSynth = new Tone.PolySynth(Tone.Synth, {
+                    oscillator: { type: 'triangle8' },
+                    envelope: { attack: 0.02, decay: 0.3, sustain: 0.4, release: 0.5 }
+                }).toDestination();
+            }
+            fanfareSynth.releaseAll(); // 停止任何正在播放的聲音
+
+            // 根據夥伴ID播放不同旋律
+            switch (detail) {
+                case 'M01': // 旅程序曲
+                    fanfareSynth.triggerAttackRelease(["C4"], "8n", now);
+                    fanfareSynth.triggerAttackRelease(["E4"], "8n", now + 0.3);
+                    fanfareSynth.triggerAttackRelease(["G4"], "8n", now + 0.6);
+                    fanfareSynth.triggerAttackRelease(["C5"], "2n", now + 0.9);
+                    break;
+                case 'M02': // 王者之聲
+                    fanfareSynth.triggerAttackRelease(["C3", "G3", "C4"], "2n", now);
+                    fanfareSynth.triggerAttackRelease(["G3", "D4", "G4"], "2n", now + 0.6);
+                    fanfareSynth.triggerAttackRelease(["C4", "E4", "G4"], "2n", now + 1.2);
+                    break;
+                case 'M03': // 莊嚴宣告
+                    fanfareSynth.triggerAttackRelease(["C4", "E4", "G4"], "4n", now);
+                    fanfareSynth.triggerAttackRelease(["F4", "A4", "C5"], "4n", now + 0.5);
+                    fanfareSynth.triggerAttackRelease(["C5", "E5"], "4n", now + 1.0);
+                    break;
+                case 'M04': // 發現時刻
+                    fanfareSynth.triggerAttackRelease(["A4", "C5", "E5"], "4n", now);
+                    fanfareSynth.triggerAttackRelease(["G4", "B4", "D5"], "4n", now + 0.5);
+                    fanfareSynth.triggerAttackRelease(["C5", "E5", "G5"], "2n", now + 1.0);
+                    break;
+                default: // 預設音效
+                    fanfareSynth.triggerAttackRelease(["C5", "E5", "G5"], "4n", now);
+                    break;
+            }
+
+        } else if (type === 'purchase') {
+            // 初始化累積點數音效合成器
+            if (!purchaseSynth) {
+                purchaseSynth = new Tone.Synth({
+                    oscillator: { type: 'sine' },
+                    envelope: { attack: 0.01, decay: 0.1, sustain: 0.2, release: 0.2 }
+                }).toDestination();
+            }
+            // 播放閃爍星塵音效
+            purchaseSynth.triggerAttackRelease("C6", "16n", now);
+            purchaseSynth.triggerAttackRelease("E6", "16n", now + 0.2);
+            purchaseSynth.triggerAttackRelease("G6", "16n", now + 0.4);
+            purchaseSynth.triggerAttackRelease("C7", "16n", now + 0.6);
+            purchaseSynth.triggerAttackRelease("E6", "16n", now + 0.8);
+            purchaseSynth.triggerAttackRelease("G6", "16n", now + 1.0);
+            purchaseSynth.triggerAttackRelease("C7", "8n", now + 1.2);
+        }
+    }
+    // ===== END: 整合後的音效函式 =====
 
     function showAlert(message) {
         document.getElementById('qrcode-container').innerHTML = '';
@@ -62,7 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         compassProgressText.textContent = `${displayAmount} / ${GOAL_AMOUNT}`;
         
-        const maskStyle = `conic-gradient(black ${percentage}%, transparent ${percentage}%)`;
+        const maskStyle = `conic-gradient(#FFD700 ${percentage}%, transparent ${percentage}%)`; // <-- 建議將顏色改為金色
         logoVivid.style.maskImage = maskStyle;
         logoVivid.style.webkitMaskImage = maskStyle;
     }
@@ -73,7 +138,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function animateProgress(startAmount, endAmount) {
-        const duration = 2000;
+        const duration = 2000; // <-- 已將動畫速度調整為2秒
         const amountToAnimate = endAmount - startAmount;
         let startTime = null;
 
@@ -119,6 +184,7 @@ document.addEventListener('DOMContentLoaded', () => {
             updateUserData({ ...userData, collectedMapPieces: newCollectedPieces });
             renderMap();
             showAlert(`太棒了！你找到了一位「綠色寶寶夥伴」，祂加入了你的隊伍！`);
+            playSound('discover', pieceId); // <-- 播放對應夥伴的音效
             checkWinCondition();
         } else {
             showAlert('這位夥伴你已經找到過了喔！');
@@ -171,6 +237,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         hidePurchaseModal();
         showAlert(`「微笑之心」吸收了 ${amount} 點純粹的信賴，變得更溫暖了！`);
+        playSound('purchase'); // <-- 播放累積點數的音效
         
         logPurchaseToServer(storeId, storeName, amount, userData.userId);
         
