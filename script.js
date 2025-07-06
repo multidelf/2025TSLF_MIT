@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function animateProgress(startAmount, endAmount) {
-        const duration = 1200;
+        const duration = 2000;
         const amountToAnimate = endAmount - startAmount;
         let startTime = null;
 
