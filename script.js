@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (type === 'discover') {
             if (!fanfareSynth) {
                 fanfareSynth = new Tone.PolySynth(Tone.Synth, {
-                    volume: -10,
+                    volume: -20,
                     oscillator: { type: 'triangle8' },
                     envelope: { attack: 0.02, decay: 0.3, sustain: 0.4, release: 0.5 }
                 }).toDestination();
@@ -77,7 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (type === 'purchase') {
             if (!purchaseSynth) {
                 purchaseSynth = new Tone.Synth({
-                    volume: -12,
+                    volume: -20,
                     oscillator: { type: 'sine' },
                     envelope: { attack: 0.01, decay: 0.1, sustain: 0.2, release: 0.2 }
                 }).toDestination();
@@ -179,7 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const newCollectedPieces = [...userData.collectedMapPieces, pieceId].sort();
             updateUserData({ ...userData, collectedMapPieces: newCollectedPieces });
             renderMap();
-            showAlert(`太棒了！你找到了一位「綠色寶寶夥伴」，祂加入了你的隊伍！`);
+            showAlert(`太棒了！你找到了一位「綠色寶寶夥伴」，他加入了你的隊伍！`);
             customAlertOkButton.addEventListener('click', () => playSound('discover', pieceId), { once: true });
             checkWinCondition();
         } else {
