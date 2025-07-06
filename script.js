@@ -190,18 +190,25 @@ document.addEventListener('DOMContentLoaded', () => {
         redeemButton.style.display = 'block';
     }
 
+    // ===== START: 已修改音效觸發時機 =====
     function handleDiscover(pieceId) {
         if (!userData.collectedMapPieces.includes(pieceId)) {
             const newCollectedPieces = [...userData.collectedMapPieces, pieceId].sort();
             updateUserData({ ...userData, collectedMapPieces: newCollectedPieces });
             renderMap();
             showAlert(`太棒了！你找到了一位「綠色寶寶夥伴」，他加入了你的隊伍！`);
-            playSound('discover', pieceId);
+            
+            // 綁定一個一次性的點擊事件，在使用者按下 "確定" 後播放音效
+            customAlertOkButton.addEventListener('click', () => {
+                playSound('discover', pieceId);
+            }, { once: true }); // { once: true } 確保這個事件只觸發一次
+
             checkWinCondition();
         } else {
             showAlert('這位夥伴你已經找到過了喔！');
         }
     }
+    // ===== END: 已修改音效觸發時機 =====
 
     function handlePurchase(storeId) {
         const storeName = storeData[storeId] || storeId; 
@@ -231,7 +238,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // ===== START: 已修改的 handleSubmit 函式 =====
+    // ===== START: 已修改音效觸發時機 =====
     function handleSubmit() {
         const amount = parseInt(amountInput.value, 10);
         if (isNaN(amount) || amount <= 0) {
@@ -257,7 +264,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         checkWinCondition();
     }
-    // ===== END: 已修改的 handleSubmit 函式 =====
+    // ===== END: 已修改音效觸發時機 =====
     
     function hidePurchaseModal() {
         purchaseModal.style.display = 'none';
