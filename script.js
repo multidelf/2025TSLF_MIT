@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ===== START: 整合後的音效函式 =====
     function playSound(type, detail = null) {
-        // 確保音訊功能已由使用者互動啟用
+        // 確保音訊功能已由使用者互動啟用 (這是備用，主要靠 unlockAudio)
         Tone.start();
         const now = Tone.now();
 
@@ -183,7 +183,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const newCollectedPieces = [...userData.collectedMapPieces, pieceId].sort();
             updateUserData({ ...userData, collectedMapPieces: newCollectedPieces });
             renderMap();
-            showAlert(`太棒了！你找到了一位「綠色寶寶夥伴」，他加入了你的隊伍！`);
+            showAlert(`太棒了！你找到了一位「綠色寶寶夥伴」，祂加入了你的隊伍！`);
             playSound('discover', pieceId); // <-- 播放對應夥伴的音效
             checkWinCondition();
         } else {
@@ -332,6 +332,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // ===== START: 新增的音訊解鎖函式 =====
+    function unlockAudio() {
+        Tone.start();
+        console.log('AudioContext unlocked!');
+        // 解鎖後就移除監聽器，這個動作只需要執行一次
+        document.body.removeEventListener('click', unlockAudio);
+        document.body.removeEventListener('touchstart', unlockAudio);
+    }
+    // ===== END: 新增的音訊解鎖函式 =====
+
     // --- 初始化程式 ---
     function init() {
         const savedData = localStorage.getItem('eventUserData');
@@ -346,6 +356,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (userData.isGameWon) {
              showTreasureLocation();
         }
+
+        // ===== START: 新增的音訊解鎖監聽器 =====
+        // 監聽第一次的使用者互動，用來解鎖音訊
+        document.body.addEventListener('click', unlockAudio);
+        document.body.addEventListener('touchstart', unlockAudio);
+        // ===== END: 新增的音訊解鎖監聽器 =====
 
         const urlParams = new URLSearchParams(window.location.search);
         const type = urlParams.get('type');
