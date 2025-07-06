@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ===== START: 整合後的音效函式 =====
     function playSound(type, detail = null) {
-        // 確保音訊功能已由使用者互動啟用 (這是備用，主要靠 unlockAudio)
+        // 確保音訊功能已由使用者互動啟用
         Tone.start();
         const now = Tone.now();
 
@@ -76,25 +76,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     fanfareSynth.triggerAttackRelease(["C5", "E5", "G5"], "4n", now);
                     break;
             }
-
-        } else if (type === 'purchase') {
-            // 初始化累積點數音效合成器
-            if (!purchaseSynth) {
-                purchaseSynth = new Tone.Synth({
-                    volume: -30,
-                    oscillator: { type: 'sine' },
-                    envelope: { attack: 0.01, decay: 0.1, sustain: 0.2, release: 0.2 }
-                }).toDestination();
-            }
-            // 播放閃爍星塵音效
-            purchaseSynth.triggerAttackRelease("C6", "16n", now);
-            purchaseSynth.triggerAttackRelease("E6", "16n", now + 0.2);
-            purchaseSynth.triggerAttackRelease("G6", "16n", now + 0.4);
-            purchaseSynth.triggerAttackRelease("C7", "16n", now + 0.6);
-            purchaseSynth.triggerAttackRelease("E6", "16n", now + 0.8);
-            purchaseSynth.triggerAttackRelease("G6", "16n", now + 1.0);
-            purchaseSynth.triggerAttackRelease("C7", "8n", now + 1.2);
-        }
+        } 
+        // **注意：'purchase' 的音效邏輯已移至 animateProgress 函式中**
     }
     // ===== END: 整合後的音效函式 =====
 
@@ -139,6 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderCompass(userData.totalAmount); 
     }
 
+    // ===== START: 已整合音效的動畫函式 =====
     function animateProgress(startAmount, endAmount) {
         const duration = 2000;
         const amountToAnimate = endAmount - startAmount;
@@ -149,21 +133,47 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        // 初始化累積點數音效合成器
+        if (!purchaseSynth) {
+            purchaseSynth = new Tone.Synth({
+                volume: -30,
+                oscillator: { type: 'sine' },
+                envelope: { attack: 0.01, decay: 0.1, sustain: 0.2, release: 0.2 }
+            }).toDestination();
+        }
+
+        // 定義播放音效的進度里程碑 (0.1 = 10%)
+        const soundMilestones = [0.1, 0.25, 0.4, 0.55, 0.7, 0.85];
+        const notesToPlay = ["C6", "E6", "G6", "C7", "E7", "G7"];
+        let milestonesReached = 0;
+
         function animationStep(currentTime) {
             if (startTime === null) startTime = currentTime;
             const timeElapsed = currentTime - startTime;
             const progress = Math.min(timeElapsed / duration, 1);
             const currentAmount = startAmount + (amountToAnimate * progress);
+
             renderCompass(currentAmount);
+
+            // 檢查是否已達到播放音效的里程碑
+            if (milestonesReached < soundMilestones.length && progress >= soundMilestones[milestonesReached]) {
+                const now = Tone.now();
+                purchaseSynth.triggerAttackRelease(notesToPlay[milestonesReached], "16n", now);
+                milestonesReached++;
+            }
 
             if (progress < 1) {
                 requestAnimationFrame(animationStep);
             } else {
                 renderCompass(endAmount);
+                // 動畫結束時可以選擇播放一個最終音效
+                const now = Tone.now();
+                purchaseSynth.triggerAttackRelease("C8", "8n", now);
             }
         }
         requestAnimationFrame(animationStep);
     }
+    // ===== END: 已整合音效的動畫函式 =====
 
     function checkWinCondition() {
         if (userData.isGameWon) return; 
@@ -186,7 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
             updateUserData({ ...userData, collectedMapPieces: newCollectedPieces });
             renderMap();
             showAlert(`太棒了！你找到了一位「綠色寶寶夥伴」，他加入了你的隊伍！`);
-            playSound('discover', pieceId); // <-- 觸發時機點不變，因為沒有動畫
+            playSound('discover', pieceId);
             checkWinCondition();
         } else {
             showAlert('這位夥伴你已經找到過了喔！');
@@ -221,6 +231,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // ===== START: 已修改的 handleSubmit 函式 =====
     function handleSubmit() {
         const amount = parseInt(amountInput.value, 10);
         if (isNaN(amount) || amount <= 0) {
@@ -236,10 +247,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         updateUserData({ ...userData, totalAmount: newTotalAmount });
         
-        // ===== START: 音效與動畫同步觸發 =====
-        animateProgress(previousAmount, newTotalAmount); // 觸發動畫
-        playSound('purchase'); // 同時觸發音效
-        // ===== END: 音效與動畫同步觸發 =====
+        // 現在只需要呼叫動畫函式，它會自己處理音效
+        animateProgress(previousAmount, newTotalAmount);
         
         hidePurchaseModal();
         showAlert(`「微笑之心」吸收了 ${amount} 點純粹的信賴，變得更溫暖了！`);
@@ -248,13 +257,13 @@ document.addEventListener('DOMContentLoaded', () => {
         
         checkWinCondition();
     }
+    // ===== END: 已修改的 handleSubmit 函式 =====
     
     function hidePurchaseModal() {
         purchaseModal.style.display = 'none';
         amountInput.value = '';
     }
 
-    // ===== START: 打字機效果邏輯 =====
     const storySnippets = [
         "您是一位熱衷探尋台灣優質寶物的「MIT收藏家」...",
         "偶然的機會你得到一顆「微笑之心」，並得知需要找到四位失散的「綠色寶寶夥伴」...",
@@ -268,9 +277,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (charIndex < storySnippets[snippetIndex].length) {
             storyTextElement.textContent += storySnippets[snippetIndex].charAt(charIndex);
             charIndex++;
-            typingTimeout = setTimeout(typeWriter, 100); // 打字速度
+            typingTimeout = setTimeout(typeWriter, 100);
         } else {
-            // 打完一句後，停留4秒，然後換下一句
             typingTimeout = setTimeout(() => {
                 storyTextElement.textContent = '';
                 charIndex = 0;
@@ -279,7 +287,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 4000);
         }
     }
-    // ===== END: 打字機效果邏輯 =====
 
 
     // --- 事件監聽器 ---
@@ -326,8 +333,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
         }
     });
-
-    // toggleStoryButton 的事件監聽器已被移除
     
     resetGameButton.addEventListener('click', () => {
         const isConfirmed = window.confirm('您確定要清除所有遊戲紀錄並從頭開始嗎？\n這個操作無法復原！');
@@ -337,17 +342,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // ===== START: 新增的音訊解鎖函式 =====
     function unlockAudio() {
         if (Tone.context.state !== 'running') {
             Tone.start();
         }
         console.log('AudioContext unlocked!');
-        // 解鎖後就移除監聽器，這個動作只需要執行一次
         document.body.removeEventListener('click', unlockAudio);
         document.body.removeEventListener('touchstart', unlockAudio);
     }
-    // ===== END: 新增的音訊解鎖函式 =====
 
     // --- 初始化程式 ---
     function init() {
@@ -364,11 +366,8 @@ document.addEventListener('DOMContentLoaded', () => {
              showTreasureLocation();
         }
 
-        // ===== START: 新增的音訊解鎖監聽器 =====
-        // 監聽第一次的使用者互動，用來解鎖音訊
         document.body.addEventListener('click', unlockAudio);
         document.body.addEventListener('touchstart', unlockAudio);
-        // ===== END: 新增的音訊解鎖監聽器 =====
 
         const urlParams = new URLSearchParams(window.location.search);
         const type = urlParams.get('type');
@@ -383,7 +382,6 @@ document.addEventListener('DOMContentLoaded', () => {
             history.replaceState(null, '', window.location.pathname);
         }
         
-        // 啟動打字機效果
         typeWriter();
     }
 
