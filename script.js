@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // 初始化號角音效合成器
             if (!fanfareSynth) {
                 fanfareSynth = new Tone.PolySynth(Tone.Synth, {
-                    volume: -25,
+                    volume: -20,
                     oscillator: { type: 'triangle8' },
                     envelope: { attack: 0.02, decay: 0.3, sustain: 0.4, release: 0.5 }
                 }).toDestination();
