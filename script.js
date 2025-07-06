@@ -1,9 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- DOM元素定義 ---
-    const mainContent = document.getElementById('main-content'); // 新增
-    const mapSection = document.getElementById('map-section'); // 新增
-    const compassSection = document.getElementById('compass-section'); // 新增
     const mapBoard = document.getElementById('map-board');
     const mapProgressText = document.getElementById('map-progress-text');
     const compassProgressText = document.getElementById('compass-progress-text');
@@ -31,57 +28,65 @@ document.addEventListener('DOMContentLoaded', () => {
         isGameWon: false 
     };
     let userData = { ...defaultUserData };
-    let fanfareSynth, purchaseSynth;
+    let fanfareSynth, purchaseSynth; // 將兩種音效合成器設為全局變數
 
     // --- 函式定義 ---
 
+    // ===== START: 整合後的音效函式 =====
     function playSound(type, detail = null) {
+        // 確保音訊功能已由使用者互動啟用 (這是備用，主要靠 unlockAudio)
         Tone.start();
         const now = Tone.now();
 
         if (type === 'discover') {
+            // 初始化號角音效合成器
             if (!fanfareSynth) {
                 fanfareSynth = new Tone.PolySynth(Tone.Synth, {
-                    volume: -20,
+                    volume: -25,
                     oscillator: { type: 'triangle8' },
                     envelope: { attack: 0.02, decay: 0.3, sustain: 0.4, release: 0.5 }
                 }).toDestination();
             }
-            fanfareSynth.releaseAll();
+            fanfareSynth.releaseAll(); // 停止任何正在播放的聲音
+
+            // 根據夥伴ID播放不同旋律
             switch (detail) {
-                case 'M01':
+                case 'M01': // 旅程序曲
                     fanfareSynth.triggerAttackRelease(["C4"], "8n", now);
                     fanfareSynth.triggerAttackRelease(["E4"], "8n", now + 0.3);
                     fanfareSynth.triggerAttackRelease(["G4"], "8n", now + 0.6);
                     fanfareSynth.triggerAttackRelease(["C5"], "2n", now + 0.9);
                     break;
-                case 'M02':
+                case 'M02': // 王者之聲
                     fanfareSynth.triggerAttackRelease(["C3", "G3", "C4"], "2n", now);
                     fanfareSynth.triggerAttackRelease(["G3", "D4", "G4"], "2n", now + 0.6);
                     fanfareSynth.triggerAttackRelease(["C4", "E4", "G4"], "2n", now + 1.2);
                     break;
-                case 'M03':
+                case 'M03': // 莊嚴宣告
                     fanfareSynth.triggerAttackRelease(["C4", "E4", "G4"], "4n", now);
                     fanfareSynth.triggerAttackRelease(["F4", "A4", "C5"], "4n", now + 0.5);
                     fanfareSynth.triggerAttackRelease(["C5", "E5"], "4n", now + 1.0);
                     break;
-                case 'M04':
+                case 'M04': // 發現時刻
                     fanfareSynth.triggerAttackRelease(["A4", "C5", "E5"], "4n", now);
                     fanfareSynth.triggerAttackRelease(["G4", "B4", "D5"], "4n", now + 0.5);
                     fanfareSynth.triggerAttackRelease(["C5", "E5", "G5"], "2n", now + 1.0);
                     break;
-                default:
+                default: // 預設音效
                     fanfareSynth.triggerAttackRelease(["C5", "E5", "G5"], "4n", now);
                     break;
             }
+
         } else if (type === 'purchase') {
+            // 初始化累積點數音效合成器
             if (!purchaseSynth) {
                 purchaseSynth = new Tone.Synth({
-                    volume: -20,
+                    volume: -30,
                     oscillator: { type: 'sine' },
                     envelope: { attack: 0.01, decay: 0.1, sustain: 0.2, release: 0.2 }
                 }).toDestination();
             }
+            // 播放閃爍星塵音效
             purchaseSynth.triggerAttackRelease("C6", "16n", now);
             purchaseSynth.triggerAttackRelease("E6", "16n", now + 0.2);
             purchaseSynth.triggerAttackRelease("G6", "16n", now + 0.4);
@@ -91,6 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
             purchaseSynth.triggerAttackRelease("C7", "8n", now + 1.2);
         }
     }
+    // ===== END: 整合後的音效函式 =====
 
     function showAlert(message) {
         document.getElementById('qrcode-container').innerHTML = '';
@@ -180,7 +186,7 @@ document.addEventListener('DOMContentLoaded', () => {
             updateUserData({ ...userData, collectedMapPieces: newCollectedPieces });
             renderMap();
             showAlert(`太棒了！你找到了一位「綠色寶寶夥伴」，他加入了你的隊伍！`);
-            customAlertOkButton.addEventListener('click', () => playSound('discover', pieceId), { once: true });
+            playSound('discover', pieceId); // <-- 觸發時機點不變，因為沒有動畫
             checkWinCondition();
         } else {
             showAlert('這位夥伴你已經找到過了喔！');
@@ -229,11 +235,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const storeName = modalStoreName.dataset.storeName;
 
         updateUserData({ ...userData, totalAmount: newTotalAmount });
-        animateProgress(previousAmount, newTotalAmount);
+        
+        // ===== START: 音效與動畫同步觸發 =====
+        animateProgress(previousAmount, newTotalAmount); // 觸發動畫
+        playSound('purchase'); // 同時觸發音效
+        // ===== END: 音效與動畫同步觸發 =====
         
         hidePurchaseModal();
         showAlert(`「微笑之心」吸收了 ${amount} 點純粹的信賴，變得更溫暖了！`);
-        customAlertOkButton.addEventListener('click', () => playSound('purchase'), { once: true });
         
         logPurchaseToServer(storeId, storeName, amount, userData.userId);
         
@@ -245,6 +254,7 @@ document.addEventListener('DOMContentLoaded', () => {
         amountInput.value = '';
     }
 
+    // ===== START: 打字機效果邏輯 =====
     const storySnippets = [
         "您是一位熱衷探尋台灣優質寶物的「MIT收藏家」...",
         "偶然的機會你得到一顆「微笑之心」，並得知需要找到四位失散的「綠色寶寶夥伴」...",
@@ -258,8 +268,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (charIndex < storySnippets[snippetIndex].length) {
             storyTextElement.textContent += storySnippets[snippetIndex].charAt(charIndex);
             charIndex++;
-            typingTimeout = setTimeout(typeWriter, 100);
+            typingTimeout = setTimeout(typeWriter, 100); // 打字速度
         } else {
+            // 打完一句後，停留4秒，然後換下一句
             typingTimeout = setTimeout(() => {
                 storyTextElement.textContent = '';
                 charIndex = 0;
@@ -268,11 +279,14 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 4000);
         }
     }
+    // ===== END: 打字機效果邏輯 =====
+
 
     // --- 事件監聽器 ---
+
     customAlertOkButton.addEventListener('click', () => {
         customAlertModal.style.display = 'none';
-    }, { capture: true }); // Use capture to ensure this runs before the sound-playing listener
+    });
     
     submitAmountButton.addEventListener('click', handleSubmit);
     cancelButton.addEventListener('click', hidePurchaseModal);
@@ -313,6 +327,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // toggleStoryButton 的事件監聽器已被移除
+    
     resetGameButton.addEventListener('click', () => {
         const isConfirmed = window.confirm('您確定要清除所有遊戲紀錄並從頭開始嗎？\n這個操作無法復原！');
         if (isConfirmed) {
@@ -321,14 +337,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // ===== START: 新增的音訊解鎖函式 =====
     function unlockAudio() {
         if (Tone.context.state !== 'running') {
             Tone.start();
         }
         console.log('AudioContext unlocked!');
+        // 解鎖後就移除監聽器，這個動作只需要執行一次
         document.body.removeEventListener('click', unlockAudio);
         document.body.removeEventListener('touchstart', unlockAudio);
     }
+    // ===== END: 新增的音訊解鎖函式 =====
 
     // --- 初始化程式 ---
     function init() {
@@ -339,28 +358,20 @@ document.addEventListener('DOMContentLoaded', () => {
             localStorage.setItem('eventUserData', JSON.stringify(userData));
         }
         
-        // ===== START: 新增的動態版面調整 =====
-        const urlParams = new URLSearchParams(window.location.search);
-        const type = urlParams.get('type');
-
-        if (type === 'discover') {
-            // 如果是掃描探索碼，將「尋找夥伴」區塊移到最前面
-            mainContent.insertBefore(mapSection, mainContent.firstChild);
-        } else {
-            // 預設或掃描消費碼時，將「微笑之心」區塊移到最前面
-            mainContent.insertBefore(compassSection, mainContent.firstChild);
-        }
-        // ===== END: 新增的動態版面調整 =====
-
         renderAll();
         
         if (userData.isGameWon) {
              showTreasureLocation();
         }
 
+        // ===== START: 新增的音訊解鎖監聽器 =====
+        // 監聽第一次的使用者互動，用來解鎖音訊
         document.body.addEventListener('click', unlockAudio);
         document.body.addEventListener('touchstart', unlockAudio);
+        // ===== END: 新增的音訊解鎖監聽器 =====
 
+        const urlParams = new URLSearchParams(window.location.search);
+        const type = urlParams.get('type');
         if (type) {
             if (type === 'discover') {
                 const pieceId = urlParams.get('piece_id');
@@ -372,6 +383,7 @@ document.addEventListener('DOMContentLoaded', () => {
             history.replaceState(null, '', window.location.pathname);
         }
         
+        // 啟動打字機效果
         typeWriter();
     }
 
