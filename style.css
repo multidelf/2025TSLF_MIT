@@ -35,11 +35,14 @@ section { flex: 1; min-width: 300px; }
 h2 { border-bottom: 2px solid #bcaaa4; padding-bottom: 10px; margin-bottom: 20px; font-size: 1.8em; }
 .progress-text { font-size: 1.2em; font-weight: bold; margin-top: 20px; }
 
-/* 動態版面調整樣式 */
+/* ===== START: 新增的動態版面調整樣式 ===== */
+/* 預設順序 */
 #compass-section { order: 1; }
 #map-section { order: 2; }
+/* 探索模式下的順序 */
 #main-content.discover-mode #map-section { order: 1; }
 #main-content.discover-mode #compass-section { order: 2; }
+/* ===== END: 新增的動態版面調整樣式 ===== */
 
 /* 打字機效果樣式 */
 #story-typewriter-container { background-color: rgba(121, 85, 72, 0.05); border-left: 4px solid #a1887f; margin: 30px auto; padding: 20px; max-width: 600px; min-height: 80px; display: flex; align-items: center; justify-content: flex-start; box-sizing: border-box; }
@@ -63,7 +66,7 @@ h2 { border-bottom: 2px solid #bcaaa4; padding-bottom: 10px; margin-bottom: 20px
 /* 彈出視窗通用樣式 */
 .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 1000; }
 .modal-content { background: #fff; padding: 30px; border-radius: 10px; text-align: center; width: 90%; max-width: 400px; }
-.modal-content button { padding: 10px 20px; font-size: 1em; cursor: pointer; border: none; border-radius: 5px; margin: 5px; }
+.modal-content button { padding: 10px 20px; font-size: 1em; cursor: pointer; border: none; border-radius: 5px; margin: 0 5px; }
 .modal-content input { width: 80%; padding: 10px; margin: 15px 0; font-size: 1.2em; text-align: center; border: 2px solid #ccc; border-radius: 5px; }
 #submit-amount-button { background-color: #81c784; color: white; }
 #cancel-button { background-color: #e57373; color: white; }
@@ -94,24 +97,72 @@ h2 { border-bottom: 2px solid #bcaaa4; padding-bottom: 10px; margin-bottom: 20px
 #reset-game-button:hover { opacity: 1; }
 
 /* ===== START: 新增的夥伴登場動畫樣式 ===== */
-#discovery-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.8); display: none; justify-content: center; align-items: center; z-index: 9999; opacity: 0; transition: opacity 0.4s ease-in-out; }
-#discovery-overlay.visible { display: flex; opacity: 1; }
-.discovery-content { display: flex; flex-direction: column; align-items: center; gap: 25px; }
-.discovery-text { font-size: 1.8em; font-weight: bold; color: white; text-shadow: 0 2px 5px black; }
-.discovery-image-placeholder { width: 60vw; max-width: 300px; aspect-ratio: 1 / 1; position: relative; }
-#discovery-image { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); transform: scale(1); opacity: 1; transition: all 1.5s cubic-bezier(0.4, 0, 0.2, 1); }
-#wake-up-button { font-size: 1.5em; padding: 15px 35px; cursor: pointer; border: none; border-radius: 50px; background: linear-gradient(145deg, #ffd54f, #ffc107); color: #4e342e; font-weight: bold; box-shadow: 0 5px 15px rgba(0,0,0,0.3); transition: transform 0.2s; }
-#wake-up-button:hover { transform: scale(1.05); }
+#discovery-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.4s ease-in-out;
+}
+#discovery-overlay.visible {
+    opacity: 1;
+    visibility: visible;
+}
+.discovery-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 25px;
+}
+.discovery-text {
+    font-size: 1.8em;
+    font-weight: bold;
+    color: white;
+    text-shadow: 0 2px 5px black;
+}
+.discovery-image-placeholder {
+    width: 60vw;
+    max-width: 300px;
+    aspect-ratio: 1 / 1;
+    position: relative;
+}
+#discovery-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    transform: scale(1);
+    opacity: 1;
+    transition: all 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+#wake-up-button {
+    font-size: 1.5em;
+    padding: 15px 35px;
+    cursor: pointer;
+    border: none;
+    border-radius: 50px;
+    background: linear-gradient(145deg, #ffd54f, #ffc107);
+    color: #4e342e;
+    font-weight: bold;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    transition: transform 0.2s;
+}
+#wake-up-button:hover {
+    transform: scale(1.05);
+}
 /* ===== END: 新增的夥伴登場動畫樣式 ===== */
-
-/* ===== START: 新增的 Gemini 功能樣式 ===== */
-.gemini-button { background: linear-gradient(145deg, #8e2de2, #4a00e0); color: white; font-weight: bold; border: none; padding: 12px 25px; border-radius: 50px; cursor: pointer; transition: all 0.3s ease; margin-top: 15px; }
-.gemini-button:hover { box-shadow: 0 5px 15px rgba(142, 45, 226, 0.4); transform: translateY(-2px); }
-#partner-monologue-container { background: rgba(255,255,255,0.1); border-radius: 10px; padding: 15px; margin-top: 20px; max-width: 90%; min-height: 60px; color: white; font-style: italic; text-align: center; }
-#treasure-story-container { background: #fff8e1; border-left: 5px solid #ffc107; margin-top: 20px; padding: 15px; border-radius: 5px; text-align: left; }
-.loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 10px auto; }
-@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-/* ===== END: 新增的 Gemini 功能樣式 ===== */
 
 /* RWD 響應式設計 */
 @media (max-width: 768px) { header h1 { font-size: 2em; } h2 { font-size: 1.5em; } #game-container { padding: 15px; } #main-content { gap: 20px; } }
