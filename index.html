@@ -24,8 +24,7 @@
         </header>
 
         <main id="main-content">
-            <!-- ===== START: 已恢復預設順序 ===== -->
-            <!-- JavaScript 會根據掃描的 QR Code 動態調整這兩個區塊的順序 -->
+            <!-- ===== START: 恢復預設順序，由 CSS order 控制顯示 ===== -->
             <section id="map-section">
                 <h2>尋找綠色寶寶夥伴</h2>
                 <div id="map-board">
@@ -48,7 +47,7 @@
                 <p class="progress-text">信賴點數：<span id="compass-progress-text">0 / 500</span></p>
                 <button id="redeem-button" style="display: none; margin: 20px auto; font-size: 1.2em; padding: 12px 25px; cursor: pointer; border-radius: 8px; border: none; background-color: #4caf50; color: white;">點此產生兌換 QR Code</button>
             </section>
-            <!-- ===== END: 已恢復預設順序 ===== -->
+            <!-- ===== END: 恢復預設順序 ===== -->
         </main>
 
         <section id="redemption-info">
@@ -89,10 +88,35 @@
             <div class="modal-content">
                 <p id="custom-alert-message" style="margin-bottom: 20px; font-size: 1.2em;"></p>
                 <div id="qrcode-container" style="margin: 20px auto; width: 180px; height: 180px; background: white; padding: 10px; box-sizing: content-box;"></div>
+                <!-- ===== START: 新增的寶藏故事區塊 ===== -->
+                <div id="treasure-story-container" style="display: none;">
+                    <div id="treasure-story-content"></div>
+                    <div id="treasure-story-loader" class="loader"></div>
+                </div>
+                <button id="generate-story-button" class="gemini-button" style="display: none;">✨ 生成我的專屬寶藏故事</button>
+                <!-- ===== END: 新增的寶藏故事區塊 ===== -->
                 <button id="custom-alert-ok-button">確定</button>
             </div>
         </div>
     </div>
+    
+    <!-- ===== START: 新增的夥伴登場動畫舞台 ===== -->
+    <div id="discovery-overlay">
+        <div class="discovery-content">
+            <p class="discovery-text">你似乎發現了什麼！</p>
+            <div class="discovery-image-placeholder">
+                 <img id="discovery-image" src="" alt="新夥伴登場">
+            </div>
+            <!-- ===== START: 新增的夥伴獨白區塊 ===== -->
+            <div id="partner-monologue-container" style="display:none;">
+                <p id="partner-monologue"></p>
+                <div id="partner-monologue-loader" class="loader"></div>
+            </div>
+            <!-- ===== END: 新增的夥伴獨白區塊 ===== -->
+            <button id="wake-up-button">喚醒夥伴！</button>
+        </div>
+    </div>
+    <!-- ===== END: 新增的夥伴登場動畫舞台 ===== -->
 
     <script src="script.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/davidshimjs-qrcodejs@0.0.2/qrcode.min.js"></script>
