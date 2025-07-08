@@ -1,9 +1,9 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- DOM元素定義 ---
-    const mainContent = document.getElementById('main-content'); // 新增
-    const mapSection = document.getElementById('map-section'); // 新增
-    const compassSection = document.getElementById('compass-section'); // 新增
+    const mainContent = document.getElementById('main-content');
+    const mapSection = document.getElementById('map-section');
+    const compassSection = document.getElementById('compass-section');
     const mapBoard = document.getElementById('map-board');
     const mapProgressText = document.getElementById('map-progress-text');
     const compassProgressText = document.getElementById('compass-progress-text');
@@ -19,6 +19,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const storyTextElement = document.getElementById('story-text');
     const redeemButton = document.getElementById('redeem-button');
     const resetGameButton = document.getElementById('reset-game-button');
+    // ===== START: 新增的元素 =====
+    const discoveryOverlay = document.getElementById('discovery-overlay');
+    const discoveryImage = document.getElementById('discovery-image');
+    const wakeUpButton = document.getElementById('wake-up-button');
+    const partnerMonologueContainer = document.getElementById('partner-monologue-container');
+    const partnerMonologue = document.getElementById('partner-monologue');
+    const partnerMonologueLoader = document.getElementById('partner-monologue-loader');
+    const generateStoryButton = document.getElementById('generate-story-button');
+    const treasureStoryContainer = document.getElementById('treasure-story-container');
+    const treasureStoryContent = document.getElementById('treasure-story-content');
+    const treasureStoryLoader = document.getElementById('treasure-story-loader');
+    // ===== END: 新增的元素 =====
 
     // --- 全局變數 ---
     const TOTAL_PIECES = 4;
@@ -35,51 +47,66 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 函式定義 ---
 
+    // ===== START: Gemini API 呼叫函式 =====
+    async function callGeminiAPI(prompt) {
+        const apiKey = ""; // API 金鑰留空
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+        
+        const payload = {
+            contents: [{
+                parts: [{ text: prompt }]
+            }]
+        };
+
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                throw new Error(`API call failed with status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            
+            if (result.candidates && result.candidates.length > 0 &&
+                result.candidates[0].content && result.candidates[0].content.parts &&
+                result.candidates[0].content.parts.length > 0) {
+                return result.candidates[0].content.parts[0].text;
+            } else {
+                console.error("Unexpected API response structure:", result);
+                return "抱歉，我暫時想不到該說什麼...";
+            }
+        } catch (error) {
+            console.error("Error calling Gemini API:", error);
+            return "哎呀，我的思緒好像打結了，請稍後再試一次！";
+        }
+    }
+    // ===== END: Gemini API 呼叫函式 =====
+
+
     function playSound(type, detail = null) {
         Tone.start();
         const now = Tone.now();
-
         if (type === 'discover') {
-            if (!fanfareSynth) {
-                fanfareSynth = new Tone.PolySynth(Tone.Synth, {
-                    volume: -25,
-                    oscillator: { type: 'triangle8' },
-                    envelope: { attack: 0.02, decay: 0.3, sustain: 0.4, release: 0.5 }
-                }).toDestination();
-            }
+            if (!fanfareSynth) { fanfareSynth = new Tone.PolySynth(Tone.Synth, { volume: -25, oscillator: { type: 'triangle8' }, envelope: { attack: 0.02, decay: 0.3, sustain: 0.4, release: 0.5 } }).toDestination(); }
             fanfareSynth.releaseAll();
             switch (detail) {
-                case 'M01':
-                    fanfareSynth.triggerAttackRelease(["C4"], "8n", now);
-                    fanfareSynth.triggerAttackRelease(["E4"], "8n", now + 0.3);
-                    fanfareSynth.triggerAttackRelease(["G4"], "8n", now + 0.6);
-                    fanfareSynth.triggerAttackRelease(["C5"], "2n", now + 0.9);
-                    break;
-                case 'M02':
-                    fanfareSynth.triggerAttackRelease(["C3", "G3", "C4"], "2n", now);
-                    fanfareSynth.triggerAttackRelease(["G3", "D4", "G4"], "2n", now + 0.6);
-                    fanfareSynth.triggerAttackRelease(["C4", "E4", "G4"], "2n", now + 1.2);
-                    break;
-                case 'M03':
-                    fanfareSynth.triggerAttackRelease(["C4", "E4", "G4"], "4n", now);
-                    fanfareSynth.triggerAttackRelease(["F4", "A4", "C5"], "4n", now + 0.5);
-                    fanfareSynth.triggerAttackRelease(["C5", "E5"], "4n", now + 1.0);
-                    break;
-                case 'M04':
-                    fanfareSynth.triggerAttackRelease(["A4", "C5", "E5"], "4n", now);
-                    fanfareSynth.triggerAttackRelease(["G4", "B4", "D5"], "4n", now + 0.5);
-                    fanfareSynth.triggerAttackRelease(["C5", "E5", "G5"], "2n", now + 1.0);
-                    break;
-                default:
-                    fanfareSynth.triggerAttackRelease(["C5", "E5", "G5"], "4n", now);
-                    break;
+                case 'M01': fanfareSynth.triggerAttackRelease(["C4"], "8n", now); fanfareSynth.triggerAttackRelease(["E4"], "8n", now + 0.3); fanfareSynth.triggerAttackRelease(["G4"], "8n", now + 0.6); fanfareSynth.triggerAttackRelease(["C5"], "2n", now + 0.9); break;
+                case 'M02': fanfareSynth.triggerAttackRelease(["C3", "G3", "C4"], "2n", now); fanfareSynth.triggerAttackRelease(["G3", "D4", "G4"], "2n", now + 0.6); fanfareSynth.triggerAttackRelease(["C4", "E4", "G4"], "2n", now + 1.2); break;
+                case 'M03': fanfareSynth.triggerAttackRelease(["C4", "E4", "G4"], "4n", now); fanfareSynth.triggerAttackRelease(["F4", "A4", "C5"], "4n", now + 0.5); fanfareSynth.triggerAttackRelease(["C5", "E5"], "4n", now + 1.0); break;
+                case 'M04': fanfareSynth.triggerAttackRelease(["A4", "C5", "E5"], "4n", now); fanfareSynth.triggerAttackRelease(["G4", "B4", "D5"], "4n", now + 0.5); fanfareSynth.triggerAttackRelease(["C5", "E5", "G5"], "2n", now + 1.0); break;
+                default: fanfareSynth.triggerAttackRelease(["C5", "E5", "G5"], "4n", now); break;
             }
         } 
     }
 
     function showAlert(message) {
-        document.getElementById('qrcode-container').innerHTML = '';
         document.getElementById('qrcode-container').style.display = 'none';
+        generateStoryButton.style.display = 'none';
+        treasureStoryContainer.style.display = 'none';
         customAlertMessage.textContent = message;
         customAlertModal.style.display = 'flex';
     }
@@ -105,9 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderCompass(amount) {
         const displayAmount = Math.round(amount);
         const percentage = Math.min((displayAmount / GOAL_AMOUNT) * 100, 100);
-        
         compassProgressText.textContent = `${displayAmount} / ${GOAL_AMOUNT}`;
-        
         const maskStyle = `conic-gradient(#FFD700 ${percentage}%, transparent ${percentage}%)`;
         logoVivid.style.maskImage = maskStyle;
         logoVivid.style.webkitMaskImage = maskStyle;
@@ -122,38 +147,22 @@ document.addEventListener('DOMContentLoaded', () => {
         const duration = 2000;
         const amountToAnimate = endAmount - startAmount;
         let startTime = null;
-
-        if (amountToAnimate <= 0) {
-            renderCompass(endAmount);
-            return;
-        }
-
-        if (!purchaseSynth) {
-            purchaseSynth = new Tone.Synth({
-                volume: -30,
-                oscillator: { type: 'sine' },
-                envelope: { attack: 0.01, decay: 0.1, sustain: 0.2, release: 0.2 }
-            }).toDestination();
-        }
-
+        if (amountToAnimate <= 0) { renderCompass(endAmount); return; }
+        if (!purchaseSynth) { purchaseSynth = new Tone.Synth({ volume: -30, oscillator: { type: 'sine' }, envelope: { attack: 0.01, decay: 0.1, sustain: 0.2, release: 0.2 } }).toDestination(); }
         const soundMilestones = [0.1, 0.25, 0.4, 0.55, 0.7, 0.85];
         const notesToPlay = ["C6", "E6", "G6", "C7", "E7", "G7"];
         let milestonesReached = 0;
-
         function animationStep(currentTime) {
             if (startTime === null) startTime = currentTime;
             const timeElapsed = currentTime - startTime;
             const progress = Math.min(timeElapsed / duration, 1);
             const currentAmount = startAmount + (amountToAnimate * progress);
-
             renderCompass(currentAmount);
-
             if (milestonesReached < soundMilestones.length && progress >= soundMilestones[milestonesReached]) {
                 const now = Tone.now();
                 purchaseSynth.triggerAttackRelease(notesToPlay[milestonesReached], "16n", now);
                 milestonesReached++;
             }
-
             if (progress < 1) {
                 requestAnimationFrame(animationStep);
             } else {
@@ -182,16 +191,69 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handleDiscover(pieceId) {
         if (!userData.collectedMapPieces.includes(pieceId)) {
-            const newCollectedPieces = [...userData.collectedMapPieces, pieceId].sort();
-            updateUserData({ ...userData, collectedMapPieces: newCollectedPieces });
-            renderMap();
-            showAlert(`太棒了！你找到了一位「綠色寶寶夥伴」，他加入了你的隊伍！`);
-            customAlertOkButton.addEventListener('click', () => playSound('discover', pieceId), { once: true });
-            checkWinCondition();
+            showDiscoveryScreen(pieceId);
         } else {
             showAlert('這位夥伴你已經找到過了喔！');
         }
     }
+
+    // ===== START: 已整合 Gemini 的夥伴登場動畫函式 =====
+    async function showDiscoveryScreen(pieceId) {
+        discoveryImage.src = `images/${pieceId}.png`;
+        discoveryImage.style.transition = 'none';
+        discoveryImage.style.transform = 'translate(-50%, -50%) scale(1)';
+        discoveryImage.style.opacity = '1';
+        
+        partnerMonologueContainer.style.display = 'none';
+        partnerMonologue.textContent = '';
+        wakeUpButton.textContent = '喚醒夥伴！';
+        
+        discoveryOverlay.classList.add('visible');
+
+        const wakeUpHandler = async () => {
+            wakeUpButton.disabled = true;
+            wakeUpButton.textContent = '喚醒中...';
+            
+            playSound('discover', pieceId);
+            
+            partnerMonologueContainer.style.display = 'block';
+            partnerMonologueLoader.style.display = 'block';
+            
+            const prompt = `你是一個代表台中城市特色的綠色寶寶夥伴，你剛剛被一位熱情的「MIT收藏家」喚醒。請用活潑且充滿感謝的語氣，寫一段簡短的自我介紹（2-3句話），告訴他你的名字或象徵（例如：我是代表台中糕餅甜蜜的陽光寶寶），並感謝他讓你甦醒。`;
+            const monologueText = await callGeminiAPI(prompt);
+            
+            partnerMonologueLoader.style.display = 'none';
+            partnerMonologue.textContent = monologueText;
+            
+            wakeUpButton.textContent = '繼續旅程';
+            wakeUpButton.disabled = false;
+
+            wakeUpButton.addEventListener('click', () => {
+                const targetPieceElement = document.querySelector(`.map-piece[data-piece-id="${pieceId}"]`);
+                if (!targetPieceElement) return;
+                const targetRect = targetPieceElement.getBoundingClientRect();
+                const translateX = (targetRect.left + targetRect.width / 2) - (window.innerWidth / 2);
+                const translateY = (targetRect.top + targetRect.height / 2) - (window.innerHeight / 2);
+                const scale = targetRect.width / discoveryImage.offsetWidth;
+                
+                discoveryImage.style.transition = 'all 1.5s cubic-bezier(0.4, 0, 0.2, 1)';
+                discoveryImage.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+                discoveryImage.style.opacity = '0';
+
+                setTimeout(() => {
+                    discoveryOverlay.classList.remove('visible');
+                    const newCollectedPieces = [...userData.collectedMapPieces, pieceId].sort();
+                    updateUserData({ ...userData, collectedMapPieces: newCollectedPieces });
+                    renderMap();
+                    showAlert(`太棒了！你找到了一位「綠色寶寶夥伴」，他加入了你的隊伍！`);
+                    checkWinCondition();
+                }, 1500);
+            }, { once: true });
+        };
+        
+        wakeUpButton.addEventListener('click', wakeUpHandler, { once: true });
+    }
+    // ===== END: 已整合 Gemini 的夥伴登場動畫函式 =====
 
     function handlePurchase(storeId) {
         const storeName = storeData[storeId] || storeId; 
@@ -203,45 +265,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function logPurchaseToServer(storeId, storeName, amount, userId) {
         const API_URL = 'https://script.google.com/macros/s/AKfycbz-6CiVtDU251TKiQc73NYYlfg8gTqESOvAOUc1VWtFz-_g7J0a1cdgfBUZWuDDs5x0PA/exec';
-        
-        const params = new URLSearchParams({
-            action: 'log_purchase',
-            storeId: storeId,
-            storeName: storeName,
-            amount: amount,
-            userId: userId
-        });
-
+        const params = new URLSearchParams({ action: 'log_purchase', storeId, storeName, amount, userId });
         const urlWithParams = `${API_URL}?${params.toString()}`;
-
-        if (navigator.sendBeacon) {
-            navigator.sendBeacon(urlWithParams);
-        } else {
-            fetch(urlWithParams, { method: 'POST', mode: 'no-cors' });
-        }
+        if (navigator.sendBeacon) { navigator.sendBeacon(urlWithParams); } else { fetch(urlWithParams, { method: 'POST', mode: 'no-cors' }); }
     }
 
     function handleSubmit() {
         const amount = parseInt(amountInput.value, 10);
-        if (isNaN(amount) || amount <= 0) {
-            showAlert('請輸入有效的金額！');
-            return;
-        }
-        
+        if (isNaN(amount) || amount <= 0) { showAlert('請輸入有效的金額！'); return; }
         const previousAmount = userData.totalAmount;
         const newTotalAmount = previousAmount + amount;
-        
         const storeId = modalStoreName.dataset.storeId; 
         const storeName = modalStoreName.dataset.storeName;
-
         updateUserData({ ...userData, totalAmount: newTotalAmount });
         animateProgress(previousAmount, newTotalAmount);
-        
         hidePurchaseModal();
         showAlert(`「微笑之心」吸收了 ${amount} 點純粹的信賴，變得更溫暖了！`);
-        
         logPurchaseToServer(storeId, storeName, amount, userData.userId);
-        
         checkWinCondition();
     }
     
@@ -250,15 +290,10 @@ document.addEventListener('DOMContentLoaded', () => {
         amountInput.value = '';
     }
 
-    const storySnippets = [
-        "您是一位熱衷探尋台灣優質寶物的「MIT收藏家」...",
-        "偶然的機會你得到一顆「微笑之心」，並得知需要找到四位失散的「綠色寶寶夥伴」...",
-        "您的旅途就此展開：找回夥伴，並用您的支持為「微笑之心」注入能量！"
-    ];
+    const storySnippets = [ "您是一位熱衷探尋台灣優質寶物的「MIT收藏家」...", "偶然的機會你得到一顆「微笑之心」，並得知需要找到四位失散的「綠色寶寶夥伴」...", "您的旅途就此展開：找回夥伴，並用您的支持為「微笑之心」注入能量！" ];
     let snippetIndex = 0;
     let charIndex = 0;
     let typingTimeout;
-
     function typeWriter() {
         if (charIndex < storySnippets[snippetIndex].length) {
             storyTextElement.textContent += storySnippets[snippetIndex].charAt(charIndex);
@@ -275,10 +310,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- 事件監聽器 ---
-    customAlertOkButton.addEventListener('click', () => {
-        customAlertModal.style.display = 'none';
-    });
-    
+    customAlertOkButton.addEventListener('click', () => { customAlertModal.style.display = 'none'; });
     submitAmountButton.addEventListener('click', handleSubmit);
     cancelButton.addEventListener('click', hidePurchaseModal);
 
@@ -289,7 +321,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const clientSideUserData = JSON.parse(localStorage.getItem('eventUserData'));
             const userId = clientSideUserData.userId;
             const API_URL = 'https://script.google.com/macros/s/AKfycbz-6CiVtDU251TKiQc73NYYlfg8gTqESOvAOUc1VWtFz-_g7J0a1cdgfBUZWuDDs5x0PA/exec';
-            
             fetch(`${API_URL}?action=generate&userId=${userId}`)
                 .then(response => response.json())
                 .then(data => {
@@ -298,14 +329,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         qrcodeContainer.innerHTML = '';
                         qrcodeContainer.style.display = 'block';
                         const verificationUrl = `https://multidelf.github.io/2025TSLF_MIT/verify.html?code=${data.code}`;
-                        new QRCode(qrcodeContainer, {
-                            text: verificationUrl,
-                            width: 180, height: 180,
-                            colorDark: "#000000", colorLight: "#ffffff",
-                            correctLevel: QRCode.CorrectLevel.H
-                        });
+                        new QRCode(qrcodeContainer, { text: verificationUrl, width: 180, height: 180, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H });
                         document.getElementById('custom-alert-message').textContent = `您的專屬兌換碼已產生！\n請將此 QR Code 出示給工作人員掃描。`;
                         redeemButton.style.display = 'none';
+                        generateStoryButton.style.display = 'inline-block'; // 顯示生成故事按鈕
                     } else {
                         showAlert(`發生錯誤：${data.message}`);
                         redeemButton.disabled = false;
@@ -318,6 +345,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
+    // ===== START: 新增的寶藏故事按鈕事件 =====
+    generateStoryButton.addEventListener('click', async () => {
+        generateStoryButton.disabled = true;
+        treasureStoryContainer.style.display = 'block';
+        treasureStoryLoader.style.display = 'block';
+        treasureStoryContent.innerHTML = '';
+
+        const prompt = `一位熱情的「MIT收藏家」剛剛完成了一項偉大的任務！他成功找回了代表台中城市精神的四位綠色寶寶夥伴，並用500點的信賴能量充滿了「微笑之心」。請用充滿魔法與詩意的口吻，寫一段約50-70字的短文，作為他尋獲的「最終寶藏」，讚揚他的努力以及台灣在地工藝(MIT)的精神。`;
+        const storyText = await callGeminiAPI(prompt);
+
+        treasureStoryLoader.style.display = 'none';
+        treasureStoryContent.innerHTML = storyText.replace(/\n/g, '<br>');
+    });
+    // ===== END: 新增的寶藏故事按鈕事件 =====
+
     resetGameButton.addEventListener('click', () => {
         const isConfirmed = window.confirm('您確定要清除所有遊戲紀錄並從頭開始嗎？\n這個操作無法復原！');
         if (isConfirmed) {
@@ -327,9 +369,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     function unlockAudio() {
-        if (Tone.context.state !== 'running') {
-            Tone.start();
-        }
+        if (Tone.context.state !== 'running') { Tone.start(); }
         console.log('AudioContext unlocked!');
         document.body.removeEventListener('click', unlockAudio);
         document.body.removeEventListener('touchstart', unlockAudio);
@@ -344,18 +384,14 @@ document.addEventListener('DOMContentLoaded', () => {
             localStorage.setItem('eventUserData', JSON.stringify(userData));
         }
         
-        // ===== START: 新增的動態版面調整 =====
         const urlParams = new URLSearchParams(window.location.search);
         const type = urlParams.get('type');
 
         if (type === 'discover') {
-            // 如果是掃描探索碼，將「尋找夥伴」區塊移到最前面
-            mainContent.insertBefore(mapSection, mainContent.firstChild);
+            mainContent.classList.add('discover-mode');
         } else {
-            // 預設或掃描消費碼時，將「微笑之心」區塊移到最前面
-            mainContent.insertBefore(compassSection, mainContent.firstChild);
+            mainContent.classList.remove('discover-mode');
         }
-        // ===== END: 新增的動態版面調整 =====
 
         renderAll();
         
