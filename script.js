@@ -19,11 +19,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const storyTextElement = document.getElementById('story-text');
     const redeemButton = document.getElementById('redeem-button');
     const resetGameButton = document.getElementById('reset-game-button');
-    // ===== START: 新增的動畫元素 =====
     const discoveryOverlay = document.getElementById('discovery-overlay');
     const discoveryImage = document.getElementById('discovery-image');
     const wakeUpButton = document.getElementById('wake-up-button');
-    // ===== END: 新增的動畫元素 =====
 
     // --- 全局變數 ---
     const TOTAL_PIECES = 4;
@@ -45,7 +43,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const now = Tone.now();
         if (type === 'discover') {
             if (!fanfareSynth) {
-                fanfareSynth = new Tone.PolySynth(Tone.Synth, { volume: -25, oscillator: { type: 'triangle8' }, envelope: { attack: 0.02, decay: 0.3, sustain: 0.4, release: 0.5 } }).toDestination();
+                fanfareSynth = new Tone.PolySynth(Tone.Synth, {
+                    volume: -20,
+                    oscillator: { type: 'triangle8' },
+                    envelope: { attack: 0.02, decay: 0.3, sustain: 0.4, release: 0.5 }
+                }).toDestination();
             }
             fanfareSynth.releaseAll();
             switch (detail) {
@@ -102,7 +104,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const amountToAnimate = endAmount - startAmount;
         let startTime = null;
         if (amountToAnimate <= 0) { renderCompass(endAmount); return; }
-        if (!purchaseSynth) { purchaseSynth = new Tone.Synth({ volume: -30, oscillator: { type: 'sine' }, envelope: { attack: 0.01, decay: 0.1, sustain: 0.2, release: 0.2 } }).toDestination(); }
+        if (!purchaseSynth) {
+            purchaseSynth = new Tone.Synth({
+                volume: -30,
+                oscillator: { type: 'sine' },
+                envelope: { attack: 0.01, decay: 0.1, sustain: 0.2, release: 0.2 }
+            }).toDestination();
+        }
         const soundMilestones = [0.1, 0.25, 0.4, 0.55, 0.7, 0.85];
         const notesToPlay = ["C6", "E6", "G6", "C7", "E7", "G7"];
         let milestonesReached = 0;
@@ -143,71 +151,41 @@ document.addEventListener('DOMContentLoaded', () => {
         redeemButton.style.display = 'block';
     }
 
-    // ===== START: 已修改的 handleDiscover 函式 =====
     function handleDiscover(pieceId) {
         if (!userData.collectedMapPieces.includes(pieceId)) {
-            // 觸發互動式登場畫面，而不是直接更新
             showDiscoveryScreen(pieceId);
         } else {
             showAlert('這位夥伴你已經找到過了喔！');
         }
     }
-    // ===== END: 已修改的 handleDiscover 函式 =====
 
-    // ===== START: 全新的夥伴登場動畫函式 =====
     function showDiscoveryScreen(pieceId) {
-        // 1. 準備動畫舞台
-        discoveryImage.src = `images/${pieceId}.png`; // 設定對應的夥伴圖片
-        // 重設圖片初始狀態
+        discoveryImage.src = `images/${pieceId}.png`;
         discoveryImage.style.transition = 'none';
         discoveryImage.style.transform = 'translate(-50%, -50%) scale(1)';
         discoveryImage.style.opacity = '1';
-        
-        // 2. 顯示遮罩層
         discoveryOverlay.classList.add('visible');
-
-        // 3. 綁定「喚醒夥伴」按鈕的一次性點擊事件
         wakeUpButton.addEventListener('click', () => {
-            // a. 播放對應的號角音效
             playSound('discover', pieceId);
-
-            // b. 計算目標位置並觸發飛行動畫
             const targetPieceElement = document.querySelector(`.map-piece[data-piece-id="${pieceId}"]`);
             if (!targetPieceElement) return;
             const targetRect = targetPieceElement.getBoundingClientRect();
-
-            const viewportWidth = window.innerWidth;
-            const viewportHeight = window.innerHeight;
-            const targetCenterX = targetRect.left + targetRect.width / 2;
-            const targetCenterY = targetRect.top + targetRect.height / 2;
-            const viewportCenterX = viewportWidth / 2;
-            const viewportCenterY = viewportHeight / 2;
-            const translateX = targetCenterX - viewportCenterX;
-            const translateY = targetCenterY - viewportCenterY;
+            const translateX = (targetRect.left + targetRect.width / 2) - (window.innerWidth / 2);
+            const translateY = (targetRect.top + targetRect.height / 2) - (window.innerHeight / 2);
             const scale = targetRect.width / discoveryImage.offsetWidth;
-
-            // c. 啟用 CSS 動畫並應用最終狀態
             discoveryImage.style.transition = 'all 1.5s cubic-bezier(0.4, 0, 0.2, 1)';
             discoveryImage.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
             discoveryImage.style.opacity = '0';
-
-            // d. 動畫結束後進行清理
             setTimeout(() => {
                 discoveryOverlay.classList.remove('visible');
-                
-                // 更新遊戲數據
                 const newCollectedPieces = [...userData.collectedMapPieces, pieceId].sort();
                 updateUserData({ ...userData, collectedMapPieces: newCollectedPieces });
-                
-                // 更新畫面並跳出最終提示
                 renderMap();
                 showAlert(`太棒了！你找到了一位「綠色寶寶夥伴」，他加入了你的隊伍！`);
                 checkWinCondition();
-            }, 1500); // 等待動畫完成
-
-        }, { once: true }); // once: true 確保這個事件只會被觸發一次
+            }, 1500);
+        }, { once: true });
     }
-    // ===== END: 全新的夥伴登場動畫函式 =====
 
     function handlePurchase(storeId) {
         const storeName = storeData[storeId] || storeId; 
@@ -324,14 +302,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const urlParams = new URLSearchParams(window.location.search);
         const type = urlParams.get('type');
 
-        // ===== START: 已修改的動態版面調整 =====
-        // 使用 class 來控制，而不是直接操作 DOM
         if (type === 'discover') {
             mainContent.classList.add('discover-mode');
         } else {
             mainContent.classList.remove('discover-mode');
         }
-        // ===== END: 已修改的動態版面調整 =====
 
         renderAll();
         
