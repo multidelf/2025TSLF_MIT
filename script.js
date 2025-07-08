@@ -19,18 +19,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const storyTextElement = document.getElementById('story-text');
     const redeemButton = document.getElementById('redeem-button');
     const resetGameButton = document.getElementById('reset-game-button');
-    // ===== START: 新增的元素 =====
+    // ===== START: 新增的動畫元素 =====
     const discoveryOverlay = document.getElementById('discovery-overlay');
     const discoveryImage = document.getElementById('discovery-image');
     const wakeUpButton = document.getElementById('wake-up-button');
-    const partnerMonologueContainer = document.getElementById('partner-monologue-container');
-    const partnerMonologue = document.getElementById('partner-monologue');
-    const partnerMonologueLoader = document.getElementById('partner-monologue-loader');
-    const generateStoryButton = document.getElementById('generate-story-button');
-    const treasureStoryContainer = document.getElementById('treasure-story-container');
-    const treasureStoryContent = document.getElementById('treasure-story-content');
-    const treasureStoryLoader = document.getElementById('treasure-story-loader');
-    // ===== END: 新增的元素 =====
+    // ===== END: 新增的動畫元素 =====
 
     // --- 全局變數 ---
     const TOTAL_PIECES = 4;
@@ -47,51 +40,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 函式定義 ---
 
-    // ===== START: Gemini API 呼叫函式 =====
-    async function callGeminiAPI(prompt) {
-        const apiKey = ""; // API 金鑰留空
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-        
-        const payload = {
-            contents: [{
-                parts: [{ text: prompt }]
-            }]
-        };
-
-        try {
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            if (!response.ok) {
-                throw new Error(`API call failed with status: ${response.status}`);
-            }
-
-            const result = await response.json();
-            
-            if (result.candidates && result.candidates.length > 0 &&
-                result.candidates[0].content && result.candidates[0].content.parts &&
-                result.candidates[0].content.parts.length > 0) {
-                return result.candidates[0].content.parts[0].text;
-            } else {
-                console.error("Unexpected API response structure:", result);
-                return "抱歉，我暫時想不到該說什麼...";
-            }
-        } catch (error) {
-            console.error("Error calling Gemini API:", error);
-            return "哎呀，我的思緒好像打結了，請稍後再試一次！";
-        }
-    }
-    // ===== END: Gemini API 呼叫函式 =====
-
-
     function playSound(type, detail = null) {
         Tone.start();
         const now = Tone.now();
         if (type === 'discover') {
-            if (!fanfareSynth) { fanfareSynth = new Tone.PolySynth(Tone.Synth, { volume: -25, oscillator: { type: 'triangle8' }, envelope: { attack: 0.02, decay: 0.3, sustain: 0.4, release: 0.5 } }).toDestination(); }
+            if (!fanfareSynth) {
+                fanfareSynth = new Tone.PolySynth(Tone.Synth, { volume: -25, oscillator: { type: 'triangle8' }, envelope: { attack: 0.02, decay: 0.3, sustain: 0.4, release: 0.5 } }).toDestination();
+            }
             fanfareSynth.releaseAll();
             switch (detail) {
                 case 'M01': fanfareSynth.triggerAttackRelease(["C4"], "8n", now); fanfareSynth.triggerAttackRelease(["E4"], "8n", now + 0.3); fanfareSynth.triggerAttackRelease(["G4"], "8n", now + 0.6); fanfareSynth.triggerAttackRelease(["C5"], "2n", now + 0.9); break;
@@ -100,13 +55,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 case 'M04': fanfareSynth.triggerAttackRelease(["A4", "C5", "E5"], "4n", now); fanfareSynth.triggerAttackRelease(["G4", "B4", "D5"], "4n", now + 0.5); fanfareSynth.triggerAttackRelease(["C5", "E5", "G5"], "2n", now + 1.0); break;
                 default: fanfareSynth.triggerAttackRelease(["C5", "E5", "G5"], "4n", now); break;
             }
-        } 
+        }
     }
 
     function showAlert(message) {
+        document.getElementById('qrcode-container').innerHTML = '';
         document.getElementById('qrcode-container').style.display = 'none';
-        generateStoryButton.style.display = 'none';
-        treasureStoryContainer.style.display = 'none';
         customAlertMessage.textContent = message;
         customAlertModal.style.display = 'flex';
     }
@@ -189,71 +143,71 @@ document.addEventListener('DOMContentLoaded', () => {
         redeemButton.style.display = 'block';
     }
 
+    // ===== START: 已修改的 handleDiscover 函式 =====
     function handleDiscover(pieceId) {
         if (!userData.collectedMapPieces.includes(pieceId)) {
+            // 觸發互動式登場畫面，而不是直接更新
             showDiscoveryScreen(pieceId);
         } else {
             showAlert('這位夥伴你已經找到過了喔！');
         }
     }
+    // ===== END: 已修改的 handleDiscover 函式 =====
 
-    // ===== START: 已整合 Gemini 的夥伴登場動畫函式 =====
-    async function showDiscoveryScreen(pieceId) {
-        discoveryImage.src = `images/${pieceId}.png`;
+    // ===== START: 全新的夥伴登場動畫函式 =====
+    function showDiscoveryScreen(pieceId) {
+        // 1. 準備動畫舞台
+        discoveryImage.src = `images/${pieceId}.png`; // 設定對應的夥伴圖片
+        // 重設圖片初始狀態
         discoveryImage.style.transition = 'none';
         discoveryImage.style.transform = 'translate(-50%, -50%) scale(1)';
         discoveryImage.style.opacity = '1';
         
-        partnerMonologueContainer.style.display = 'none';
-        partnerMonologue.textContent = '';
-        wakeUpButton.textContent = '喚醒夥伴！';
-        
+        // 2. 顯示遮罩層
         discoveryOverlay.classList.add('visible');
 
-        const wakeUpHandler = async () => {
-            wakeUpButton.disabled = true;
-            wakeUpButton.textContent = '喚醒中...';
-            
+        // 3. 綁定「喚醒夥伴」按鈕的一次性點擊事件
+        wakeUpButton.addEventListener('click', () => {
+            // a. 播放對應的號角音效
             playSound('discover', pieceId);
-            
-            partnerMonologueContainer.style.display = 'block';
-            partnerMonologueLoader.style.display = 'block';
-            
-            const prompt = `你是一個代表台中城市特色的綠色寶寶夥伴，你剛剛被一位熱情的「MIT收藏家」喚醒。請用活潑且充滿感謝的語氣，寫一段簡短的自我介紹（2-3句話），告訴他你的名字或象徵（例如：我是代表台中糕餅甜蜜的陽光寶寶），並感謝他讓你甦醒。`;
-            const monologueText = await callGeminiAPI(prompt);
-            
-            partnerMonologueLoader.style.display = 'none';
-            partnerMonologue.textContent = monologueText;
-            
-            wakeUpButton.textContent = '繼續旅程';
-            wakeUpButton.disabled = false;
 
-            wakeUpButton.addEventListener('click', () => {
-                const targetPieceElement = document.querySelector(`.map-piece[data-piece-id="${pieceId}"]`);
-                if (!targetPieceElement) return;
-                const targetRect = targetPieceElement.getBoundingClientRect();
-                const translateX = (targetRect.left + targetRect.width / 2) - (window.innerWidth / 2);
-                const translateY = (targetRect.top + targetRect.height / 2) - (window.innerHeight / 2);
-                const scale = targetRect.width / discoveryImage.offsetWidth;
+            // b. 計算目標位置並觸發飛行動畫
+            const targetPieceElement = document.querySelector(`.map-piece[data-piece-id="${pieceId}"]`);
+            if (!targetPieceElement) return;
+            const targetRect = targetPieceElement.getBoundingClientRect();
+
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+            const targetCenterX = targetRect.left + targetRect.width / 2;
+            const targetCenterY = targetRect.top + targetRect.height / 2;
+            const viewportCenterX = viewportWidth / 2;
+            const viewportCenterY = viewportHeight / 2;
+            const translateX = targetCenterX - viewportCenterX;
+            const translateY = targetCenterY - viewportCenterY;
+            const scale = targetRect.width / discoveryImage.offsetWidth;
+
+            // c. 啟用 CSS 動畫並應用最終狀態
+            discoveryImage.style.transition = 'all 1.5s cubic-bezier(0.4, 0, 0.2, 1)';
+            discoveryImage.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+            discoveryImage.style.opacity = '0';
+
+            // d. 動畫結束後進行清理
+            setTimeout(() => {
+                discoveryOverlay.classList.remove('visible');
                 
-                discoveryImage.style.transition = 'all 1.5s cubic-bezier(0.4, 0, 0.2, 1)';
-                discoveryImage.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
-                discoveryImage.style.opacity = '0';
+                // 更新遊戲數據
+                const newCollectedPieces = [...userData.collectedMapPieces, pieceId].sort();
+                updateUserData({ ...userData, collectedMapPieces: newCollectedPieces });
+                
+                // 更新畫面並跳出最終提示
+                renderMap();
+                showAlert(`太棒了！你找到了一位「綠色寶寶夥伴」，他加入了你的隊伍！`);
+                checkWinCondition();
+            }, 1500); // 等待動畫完成
 
-                setTimeout(() => {
-                    discoveryOverlay.classList.remove('visible');
-                    const newCollectedPieces = [...userData.collectedMapPieces, pieceId].sort();
-                    updateUserData({ ...userData, collectedMapPieces: newCollectedPieces });
-                    renderMap();
-                    showAlert(`太棒了！你找到了一位「綠色寶寶夥伴」，他加入了你的隊伍！`);
-                    checkWinCondition();
-                }, 1500);
-            }, { once: true });
-        };
-        
-        wakeUpButton.addEventListener('click', wakeUpHandler, { once: true });
+        }, { once: true }); // once: true 確保這個事件只會被觸發一次
     }
-    // ===== END: 已整合 Gemini 的夥伴登場動畫函式 =====
+    // ===== END: 全新的夥伴登場動畫函式 =====
 
     function handlePurchase(storeId) {
         const storeName = storeData[storeId] || storeId; 
@@ -313,7 +267,6 @@ document.addEventListener('DOMContentLoaded', () => {
     customAlertOkButton.addEventListener('click', () => { customAlertModal.style.display = 'none'; });
     submitAmountButton.addEventListener('click', handleSubmit);
     cancelButton.addEventListener('click', hidePurchaseModal);
-
     redeemButton.addEventListener('click', () => {
         if (confirm('確定要產生兌換碼嗎？\n請在服務台人員面前點擊此按鈕。')) {
             showAlert('兌換碼產生中，請稍候...');
@@ -332,7 +285,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         new QRCode(qrcodeContainer, { text: verificationUrl, width: 180, height: 180, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H });
                         document.getElementById('custom-alert-message').textContent = `您的專屬兌換碼已產生！\n請將此 QR Code 出示給工作人員掃描。`;
                         redeemButton.style.display = 'none';
-                        generateStoryButton.style.display = 'inline-block'; // 顯示生成故事按鈕
                     } else {
                         showAlert(`發生錯誤：${data.message}`);
                         redeemButton.disabled = false;
@@ -345,21 +297,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
-    // ===== START: 新增的寶藏故事按鈕事件 =====
-    generateStoryButton.addEventListener('click', async () => {
-        generateStoryButton.disabled = true;
-        treasureStoryContainer.style.display = 'block';
-        treasureStoryLoader.style.display = 'block';
-        treasureStoryContent.innerHTML = '';
-
-        const prompt = `一位熱情的「MIT收藏家」剛剛完成了一項偉大的任務！他成功找回了代表台中城市精神的四位綠色寶寶夥伴，並用500點的信賴能量充滿了「微笑之心」。請用充滿魔法與詩意的口吻，寫一段約50-70字的短文，作為他尋獲的「最終寶藏」，讚揚他的努力以及台灣在地工藝(MIT)的精神。`;
-        const storyText = await callGeminiAPI(prompt);
-
-        treasureStoryLoader.style.display = 'none';
-        treasureStoryContent.innerHTML = storyText.replace(/\n/g, '<br>');
-    });
-    // ===== END: 新增的寶藏故事按鈕事件 =====
-
     resetGameButton.addEventListener('click', () => {
         const isConfirmed = window.confirm('您確定要清除所有遊戲紀錄並從頭開始嗎？\n這個操作無法復原！');
         if (isConfirmed) {
@@ -387,11 +324,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const urlParams = new URLSearchParams(window.location.search);
         const type = urlParams.get('type');
 
+        // ===== START: 已修改的動態版面調整 =====
+        // 使用 class 來控制，而不是直接操作 DOM
         if (type === 'discover') {
             mainContent.classList.add('discover-mode');
         } else {
             mainContent.classList.remove('discover-mode');
         }
+        // ===== END: 已修改的動態版面調整 =====
 
         renderAll();
         
