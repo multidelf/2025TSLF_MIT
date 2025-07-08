@@ -1,13 +1,13 @@
 /* 全局樣式 */
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    background-color: #e3f2fd; /* 淺藍色背景，預防圖片載入失敗 */
-    background-image: url('images/background.png'); /* <-- 請確認您的圖片路徑與檔名 */
+    background-color: #f4f1ea;
+    background-image: url('images/background.png');
     background-repeat: no-repeat;
     background-size: cover;
     background-position: center center;
     background-attachment: fixed;
-    color: #37474f; /* 改為深藍灰色，更柔和 */
+    color: #5d4037;
     margin: 0;
     padding: 20px;
     display: flex;
@@ -18,75 +18,37 @@ body {
 }
 
 #game-container {
-    background-color: rgba(255, 255, 255, 0.9); /* 半透明白色背景，營造雲朵感 */
-    border: 2px solid #ffffff; /* 純白邊框，增加層次 */
-    border-radius: 20px; /* 更圓潤的邊角 */
+    background-color: rgba(255, 255, 255, 0.85);
+    border: 3px solid #a1887f;
+    border-radius: 15px;
     padding: 20px;
     max-width: 900px;
     width: 100%;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
     text-align: center;
 }
 
-header h1 { font-size: 2.5em; color: #0D47A1; margin-bottom: 0.5em; } /* 深寶藍色標題 */
-.main-scan-prompt { text-align: center; font-weight: bold; font-size: 1.1em; color: #0277BD; margin-top: 30px; margin-bottom: 10px; padding: 15px 10px; border-top: 2px dashed #90CAF9; border-bottom: 2px dashed #90CAF9; background-color: rgba(227, 242, 253, 0.6); }
+header h1 { font-size: 2.5em; color: #4e342e; margin-bottom: 0.5em; }
+.main-scan-prompt { text-align: center; font-weight: bold; font-size: 1.1em; color: #bf360c; margin-top: 30px; margin-bottom: 10px; padding: 15px 10px; border-top: 2px dashed #a1887f; border-bottom: 2px dashed #a1887f; background-color: rgba(255, 236, 179, 0.4); }
 #main-content { display: flex; flex-wrap: wrap; gap: 30px; justify-content: center; margin-top: 20px; }
 section { flex: 1; min-width: 300px; }
-h2 { border-bottom: 2px solid #81D4FA; padding-bottom: 10px; margin-bottom: 20px; font-size: 1.8em; color: #0288D1; } /* 中藍色標題與淡藍色底線 */
+h2 { border-bottom: 2px solid #bcaaa4; padding-bottom: 10px; margin-bottom: 20px; font-size: 1.8em; }
 .progress-text { font-size: 1.2em; font-weight: bold; margin-top: 20px; }
 
-/* ===== START: 打字機效果樣式 ===== */
-#story-typewriter-container {
-    background-color: rgba(187, 222, 251, 0.3); /* 使用主題中的淡藍色系做淡淡的背景 */
-    border-left: 4px solid #81D4FA; /* 左側的強調線 */
-    margin: 30px auto;
-    padding: 20px;
-    max-width: 600px;
-    min-height: 80px; /* 給予一個最小高度以防版面跳動 */
-    display: flex;
-    align-items: center;
-    justify-content: flex-start; /* 文字從左開始 */
-    box-sizing: border-box;
-    border-radius: 0 8px 8px 0;
-}
+/* 動態版面調整樣式 */
+#compass-section { order: 1; }
+#map-section { order: 2; }
+#main-content.discover-mode #map-section { order: 1; }
+#main-content.discover-mode #compass-section { order: 2; }
 
-#story-text {
-    font-family: 'Courier New', Courier, monospace; /* 使用等寬字體更有打字機的感覺 */
-    font-size: 1.1em;
-    color: #01579B; /* 使用較深的藍色以確保可讀性 */
-    text-align: left;
-    width: 100%;
-    line-height: 1.6;
-}
-
-#story-text::after {
-    content: '▋';
-    animation: blink 0.7s infinite;
-    color: #03A9F4;
-    font-weight: bold;
-    margin-left: 2px;
-}
-
-@keyframes blink {
-    50% {
-        opacity: 0;
-    }
-}
-/* ===== END: 打字機效果樣式 ===== */
+/* 打字機效果樣式 */
+#story-typewriter-container { background-color: rgba(121, 85, 72, 0.05); border-left: 4px solid #a1887f; margin: 30px auto; padding: 20px; max-width: 600px; min-height: 80px; display: flex; align-items: center; justify-content: flex-start; box-sizing: border-box; }
+#story-text { font-family: 'Courier New', Courier, monospace; font-size: 1.1em; color: #5d4037; text-align: left; width: 100%; line-height: 1.6; }
+#story-text::after { content: '▋'; animation: blink 0.7s infinite; color: #795548; font-weight: bold; margin-left: 2px; }
+@keyframes blink { 50% { opacity: 0; } }
 
 /* 夥伴區塊樣式 */
-#map-board { 
-    display: grid; 
-    grid-template-columns: repeat(2, 1fr); 
-    grid-template-rows: repeat(2, 1fr);
-    gap: 5px;
-    width: 100%; 
-    max-width: 300px;
-    margin: 0 auto; 
-    border: 5px solid #bbdefb;
-    background-color: rgba(227, 242, 253, 0.7);
-    padding: 5px; 
-}
+#map-board { display: grid; grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(2, 1fr); gap: 10px; width: 100%; max-width: 300px; margin: 0 auto; border: 5px solid #8d6e63; background-color: rgba(215, 204, 200, 0.5); padding: 10px; }
 .map-piece { width: 100%; padding-bottom: 100%; position: relative; }
 .map-piece img { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; border-radius: 4px; opacity: 0.35; filter: grayscale(80%) brightness(0.9); transition: all 0.5s ease-in-out; }
 .map-piece.unlocked img { opacity: 1; filter: grayscale(0%) brightness(1); transform: scale(1.05); box-shadow: 0 0 10px rgba(0,0,0,0.3); }
@@ -96,30 +58,26 @@ h2 { border-bottom: 2px solid #81D4FA; padding-bottom: 10px; margin-bottom: 20px
 .compass-image { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
 #compass-progress-bar { }
 .logo-dim { filter: contrast(5%); }
-.logo-vivid { 
-    filter: contrast(100%); 
-    mask-image: conic-gradient(black 0%, transparent 0%); 
-    -webkit-mask-image: conic-gradient(black 0%, transparent 0%); 
-}
+.logo-vivid { filter: contrast(100%); mask-image: conic-gradient(black 0%, transparent 0%); -webkit-mask-image: conic-gradient(black 0%, transparent 0%); }
 
 /* 彈出視窗通用樣式 */
 .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 1000; }
 .modal-content { background: #fff; padding: 30px; border-radius: 10px; text-align: center; width: 90%; max-width: 400px; }
-.modal-content button { padding: 10px 20px; font-size: 1em; cursor: pointer; border: none; border-radius: 5px; margin: 0 5px; }
+.modal-content button { padding: 10px 20px; font-size: 1em; cursor: pointer; border: none; border-radius: 5px; margin: 5px; }
 .modal-content input { width: 80%; padding: 10px; margin: 15px 0; font-size: 1.2em; text-align: center; border: 2px solid #ccc; border-radius: 5px; }
-#submit-amount-button { background-color: #03A9F4; color: white; }
+#submit-amount-button { background-color: #81c784; color: white; }
 #cancel-button { background-color: #e57373; color: white; }
-#custom-alert-ok-button { background-color: #03A9F4; color: white; padding: 10px 30px; }
+#custom-alert-ok-button { background-color: #2196F3; color: white; padding: 10px 30px; }
 
 /* 遊戲目標與兌換說明區塊樣式 */
-#redemption-info { width: 100%; max-width: 860px; margin: 40px auto; padding: 25px; background-color: rgba(225, 245, 254, 0.9); border: 2px solid #81D4FA; border-radius: 10px; box-sizing: border-box; text-align: center; }
-#redemption-info h2 { color: #01579B; }
+#redemption-info { width: 100%; max-width: 860px; margin: 40px auto; padding: 25px; background-color: rgba(232, 245, 233, 0.9); border: 2px solid #a5d6a7; border-radius: 10px; box-sizing: border-box; text-align: center; }
+#redemption-info h2 { color: #2e7d32; }
 .redemption-content { text-align: left; max-width: 600px; margin: 0 auto; }
 #redemption-info p { line-height: 1.7; margin-bottom: 20px; }
-#redemption-info strong { color: #01579B; font-size: 1.1em; }
+#redemption-info strong { color: #1b5e20; font-size: 1.1em; }
 #redemption-info ul { list-style-type: none; padding-left: 25px; margin: -10px 0 20px 0; }
 #redemption-info li { position: relative; margin-bottom: 8px; }
-#redemption-info li::before { content: '✨'; position: absolute; left: -25px; top: 0; }
+#redemption-info li::before { content: '🎁'; position: absolute; left: -25px; top: 0; }
 .prize-notice { font-weight: bold; color: #c62828; text-align: center; font-size: 0.9em; }
 
 /* 重要注意事項區塊樣式 */
@@ -131,26 +89,30 @@ h2 { border-bottom: 2px solid #81D4FA; padding-bottom: 10px; margin-bottom: 20px
 #important-notes li::before { content: '⚠️'; position: absolute; left: 0; top: 2px; }
 
 /* 重玩按鈕樣式 */
-.reset-container {
-    text-align: center;
-    margin-top: 30px;
-    padding-bottom: 20px;
-}
-#reset-game-button {
-    background-color: #9e9e9e;
-    color: white;
-    border: none;
-    padding: 8px 15px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 0.8em;
-    opacity: 0.7;
-    transition: opacity 0.3s;
-}
-#reset-game-button:hover {
-    opacity: 1;
-}
+.reset-container { text-align: center; margin-top: 30px; padding-bottom: 20px; }
+#reset-game-button { background-color: #9e9e9e; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-size: 0.8em; opacity: 0.7; transition: opacity 0.3s; }
+#reset-game-button:hover { opacity: 1; }
+
+/* ===== START: 新增的夥伴登場動畫樣式 ===== */
+#discovery-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.8); display: none; justify-content: center; align-items: center; z-index: 9999; opacity: 0; transition: opacity 0.4s ease-in-out; }
+#discovery-overlay.visible { display: flex; opacity: 1; }
+.discovery-content { display: flex; flex-direction: column; align-items: center; gap: 25px; }
+.discovery-text { font-size: 1.8em; font-weight: bold; color: white; text-shadow: 0 2px 5px black; }
+.discovery-image-placeholder { width: 60vw; max-width: 300px; aspect-ratio: 1 / 1; position: relative; }
+#discovery-image { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); transform: scale(1); opacity: 1; transition: all 1.5s cubic-bezier(0.4, 0, 0.2, 1); }
+#wake-up-button { font-size: 1.5em; padding: 15px 35px; cursor: pointer; border: none; border-radius: 50px; background: linear-gradient(145deg, #ffd54f, #ffc107); color: #4e342e; font-weight: bold; box-shadow: 0 5px 15px rgba(0,0,0,0.3); transition: transform 0.2s; }
+#wake-up-button:hover { transform: scale(1.05); }
+/* ===== END: 新增的夥伴登場動畫樣式 ===== */
+
+/* ===== START: 新增的 Gemini 功能樣式 ===== */
+.gemini-button { background: linear-gradient(145deg, #8e2de2, #4a00e0); color: white; font-weight: bold; border: none; padding: 12px 25px; border-radius: 50px; cursor: pointer; transition: all 0.3s ease; margin-top: 15px; }
+.gemini-button:hover { box-shadow: 0 5px 15px rgba(142, 45, 226, 0.4); transform: translateY(-2px); }
+#partner-monologue-container { background: rgba(255,255,255,0.1); border-radius: 10px; padding: 15px; margin-top: 20px; max-width: 90%; min-height: 60px; color: white; font-style: italic; text-align: center; }
+#treasure-story-container { background: #fff8e1; border-left: 5px solid #ffc107; margin-top: 20px; padding: 15px; border-radius: 5px; text-align: left; }
+.loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 10px auto; }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+/* ===== END: 新增的 Gemini 功能樣式 ===== */
 
 /* RWD 響應式設計 */
 @media (max-width: 768px) { header h1 { font-size: 2em; } h2 { font-size: 1.5em; } #game-container { padding: 15px; } #main-content { gap: 20px; } }
-@media (max-width: 480px) { body { padding: 10px; } header h1 { font-size: 1.8em; } h2 { font-size: 1.3em; } .progress-text { font-size: 1em; } #compass-container { width: 150px; height: 150px; } #story-typewriter-container { padding: 15px; } #story-text { font-size: 1em; } }
+@media (max-width: 480px) { body { padding: 10px; } header h1 { font-size: 1.8em; } h2 { font-size: 1.3em; } .progress-text { font-size: 1em; } #compass-container { width: 150px; height: 150px; } #story-typewriter-container { padding: 15px; } #story-text { font-size: 1em; } .discovery-text { font-size: 1.5em; } #wake-up-button { font-size: 1.2em; } }
