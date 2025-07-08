@@ -164,7 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // 延遲一小段時間，讓最後的動畫或音效播完
             setTimeout(() => {
                 showTreasureLocation();
-            }, 500);
+            }, 1000);
             // ===== END: 修改勝利觸發 =====
         }
     }
