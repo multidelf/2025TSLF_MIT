@@ -60,12 +60,30 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function showAlert(message) {
-        document.getElementById('qrcode-container').innerHTML = '';
+    // ===== START: 已修改的 showAlert 函式 =====
+    function showAlert(message, isCongrats = false) {
+        const modalContent = customAlertModal.querySelector('.modal-content');
+        const confettiContainer = document.getElementById('confetti-container');
+        
+        // 清理舊狀態
         document.getElementById('qrcode-container').style.display = 'none';
+        confettiContainer.innerHTML = '';
+        modalContent.classList.remove('congrats-modal');
+
+        if (isCongrats) {
+            modalContent.classList.add('congrats-modal');
+            // 產生彩帶
+            for(let i = 0; i < 9; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confettiContainer.appendChild(confetti);
+            }
+        }
+        
         customAlertMessage.textContent = message;
         customAlertModal.style.display = 'flex';
     }
+    // ===== END: 已修改的 showAlert 函式 =====
 
     function updateUserData(data) {
         userData = data;
@@ -142,14 +160,27 @@ document.addEventListener('DOMContentLoaded', () => {
         const compassIsFull = userData.totalAmount >= GOAL_AMOUNT;
         if (mapIsComplete && compassIsFull) {
             updateUserData({ ...userData, isGameWon: true });
-            showTreasureLocation();
+            // ===== START: 修改勝利觸發 =====
+            // 延遲一小段時間，讓最後的動畫或音效播完
+            setTimeout(() => {
+                showTreasureLocation();
+            }, 500);
+            // ===== END: 修改勝利觸發 =====
         }
     }
 
+    // ===== START: 已修改的 showTreasureLocation 函式 =====
     function showTreasureLocation() {
         mapBoard.style.boxShadow = '0 0 30px 10px #ffd54f';
-        redeemButton.style.display = 'block';
+        // 呼叫祝賀視窗
+        showAlert("🎉 恭喜！您已完成所有任務！🎉\n現在可以兌換您的專屬獎勵了！", true);
+        
+        // 在使用者按下確定後，再顯示兌換按鈕
+        customAlertOkButton.addEventListener('click', () => {
+            redeemButton.style.display = 'block';
+        }, { once: true });
     }
+    // ===== END: 已修改的 showTreasureLocation 函式 =====
 
     function handleDiscover(pieceId) {
         if (!userData.collectedMapPieces.includes(pieceId)) {
