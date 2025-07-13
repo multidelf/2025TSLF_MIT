@@ -136,20 +136,19 @@ document.addEventListener('DOMContentLoaded', () => {
         requestAnimationFrame(animationStep);
     }
 
-    // ===== START: 已修改的獎勵條件判斷 =====
     function checkPartnerReward() {
         const mapIsComplete = userData.collectedMapPieces.length === TOTAL_PIECES;
         if (mapIsComplete) {
-            redeemPartnerButton.style.display = 'block'; // 只要完成就顯示
+            redeemPartnerButton.style.display = 'block';
             if (userData.partnerRewardClaimed) {
-                redeemPartnerButton.disabled = true; // 如果已兌換，則禁用
+                redeemPartnerButton.disabled = true;
                 redeemPartnerButton.textContent = '夥伴獎勵已兌換';
             } else {
-                redeemPartnerButton.disabled = false; // 否則啟用
+                redeemPartnerButton.disabled = false;
                 redeemPartnerButton.textContent = '兌換夥伴收集獎';
             }
         } else {
-            redeemPartnerButton.style.display = 'none'; // 未完成則隱藏
+            redeemPartnerButton.style.display = 'none';
         }
     }
 
@@ -160,7 +159,6 @@ document.addEventListener('DOMContentLoaded', () => {
             redeemPurchaseButton.style.display = 'none';
         }
     }
-    // ===== END: 已修改的獎勵條件判斷 =====
 
     function handleDiscover(pieceId) {
         if (!userData.collectedMapPieces.includes(pieceId)) {
@@ -193,7 +191,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateUserData({ ...userData, collectedMapPieces: newCollectedPieces });
                 renderMap();
                 showAlert(`太棒了！你找到了一位「綠色寶寶夥伴」，他加入了你的隊伍！`);
-                checkPartnerReward(); // 找到新夥伴後，檢查夥伴獎勵
+                checkPartnerReward();
             }, 1500);
         }, { once: true });
     }
@@ -256,7 +254,6 @@ document.addEventListener('DOMContentLoaded', () => {
     submitAmountButton.addEventListener('click', handleSubmit);
     cancelButton.addEventListener('click', hidePurchaseModal);
 
-    // ===== START: 已修改的兌換函式 =====
     function handleRedemption(rewardType) {
         const confirmMessage = `確定要兌換「${rewardType === 'partner' ? '夥伴收集獎' : '信賴點數獎'}」嗎？\n請在服務台人員面前點擊此按鈕。`;
         if (!confirm(confirmMessage)) return;
@@ -282,7 +279,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     if (rewardType === 'partner') {
                         updateUserData({ ...userData, partnerRewardClaimed: true });
-                        // 成功後，直接呼叫檢查函式來更新按鈕狀態
                         checkPartnerReward(); 
                     } else if (rewardType === 'purchase') {
                         const newTotalAmount = userData.totalAmount - GOAL_AMOUNT;
@@ -292,7 +288,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 } else {
                     showAlert(`發生錯誤：${data.message}`);
-                    buttonToDisable.disabled = false; // 發生錯誤時才恢復按鈕
+                    buttonToDisable.disabled = false;
                     buttonToDisable.textContent = rewardType === 'partner' ? '兌換夥伴收集獎' : '兌換信賴點數獎';
                 }
             })
@@ -305,7 +301,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     redeemPartnerButton.addEventListener('click', () => handleRedemption('partner'));
     redeemPurchaseButton.addEventListener('click', () => handleRedemption('purchase'));
-    // ===== END: 已修改的兌換函式 =====
     
     resetGameButton.addEventListener('click', () => {
         const isConfirmed = window.confirm('您確定要清除所有遊戲紀錄並從頭開始嗎？\n這個操作無法復原！');
