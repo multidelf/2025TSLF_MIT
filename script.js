@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
         userId: 'user_' + Date.now() + Math.random().toString(36).substr(2, 9), 
         collectedMapPieces: [], 
         totalAmount: 0, 
-        partnerRewardClaimed: false
+        partnerRewardClaimed: false 
     };
     let userData = { ...defaultUserData };
     let fanfareSynth, purchaseSynth;
@@ -43,7 +43,13 @@ document.addEventListener('DOMContentLoaded', () => {
         Tone.start();
         const now = Tone.now();
         if (type === 'discover') {
-            if (!fanfareSynth) { fanfareSynth = new Tone.PolySynth(Tone.Synth, { volume: -20, oscillator: { type: 'triangle8' }, envelope: { attack: 0.02, decay: 0.3, sustain: 0.4, release: 0.5 } }).toDestination(); }
+            if (!fanfareSynth) {
+                fanfareSynth = new Tone.PolySynth(Tone.Synth, {
+                    volume: -20,
+                    oscillator: { type: 'triangle8' },
+                    envelope: { attack: 0.02, decay: 0.3, sustain: 0.4, release: 0.5 }
+                }).toDestination();
+            }
             fanfareSynth.releaseAll();
             switch (detail) {
                 case 'M01': fanfareSynth.triggerAttackRelease(["C4"], "8n", now); fanfareSynth.triggerAttackRelease(["E4"], "8n", now + 0.3); fanfareSynth.triggerAttackRelease(["G4"], "8n", now + 0.6); fanfareSynth.triggerAttackRelease(["C5"], "2n", now + 0.9); break;
@@ -130,12 +136,20 @@ document.addEventListener('DOMContentLoaded', () => {
         requestAnimationFrame(animationStep);
     }
 
+    // ===== START: 已修改的獎勵條件判斷 =====
     function checkPartnerReward() {
         const mapIsComplete = userData.collectedMapPieces.length === TOTAL_PIECES;
-        if (mapIsComplete && !userData.partnerRewardClaimed) {
-            redeemPartnerButton.style.display = 'block';
+        if (mapIsComplete) {
+            redeemPartnerButton.style.display = 'block'; // 只要完成就顯示
+            if (userData.partnerRewardClaimed) {
+                redeemPartnerButton.disabled = true; // 如果已兌換，則禁用
+                redeemPartnerButton.textContent = '夥伴獎勵已兌換';
+            } else {
+                redeemPartnerButton.disabled = false; // 否則啟用
+                redeemPartnerButton.textContent = '兌換夥伴收集獎';
+            }
         } else {
-            redeemPartnerButton.style.display = 'none';
+            redeemPartnerButton.style.display = 'none'; // 未完成則隱藏
         }
     }
 
@@ -146,6 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
             redeemPurchaseButton.style.display = 'none';
         }
     }
+    // ===== END: 已修改的獎勵條件判斷 =====
 
     function handleDiscover(pieceId) {
         if (!userData.collectedMapPieces.includes(pieceId)) {
@@ -178,7 +193,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateUserData({ ...userData, collectedMapPieces: newCollectedPieces });
                 renderMap();
                 showAlert(`太棒了！你找到了一位「綠色寶寶夥伴」，他加入了你的隊伍！`);
-                checkPartnerReward();
+                checkPartnerReward(); // 找到新夥伴後，檢查夥伴獎勵
             }, 1500);
         }, { once: true });
     }
@@ -256,12 +271,7 @@ document.addEventListener('DOMContentLoaded', () => {
         fetch(`${API_URL}?${params.toString()}`)
             .then(response => response.json())
             .then(data => {
-                // 無論成功或失敗，都先把按鈕恢復
-                buttonToDisable.disabled = false;
-                buttonToDisable.textContent = rewardType === 'partner' ? '兌換夥伴收集獎' : '兌換信賴點數獎';
-
                 if (data.status === 'success' || data.status === 'already_generated') {
-                    // 成功拿到兌換碼後，才顯示 QR Code 視窗
                     const qrcodeContainer = document.getElementById('qrcode-container');
                     qrcodeContainer.innerHTML = '';
                     const verificationUrl = `https://multidelf.github.io/2025TSLF_MIT/verify.html?code=${data.code}`;
@@ -272,15 +282,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     if (rewardType === 'partner') {
                         updateUserData({ ...userData, partnerRewardClaimed: true });
-                        redeemPartnerButton.style.display = 'none'; // 永久隱藏
+                        // 成功後，直接呼叫檢查函式來更新按鈕狀態
+                        checkPartnerReward(); 
                     } else if (rewardType === 'purchase') {
                         const newTotalAmount = userData.totalAmount - GOAL_AMOUNT;
                         updateUserData({ ...userData, totalAmount: newTotalAmount });
-                        renderCompass(newTotalAmount); // 更新畫面
-                        checkPurchaseReward(); // 重新檢查按鈕狀態
+                        renderCompass(newTotalAmount);
+                        checkPurchaseReward();
                     }
                 } else {
                     showAlert(`發生錯誤：${data.message}`);
+                    buttonToDisable.disabled = false; // 發生錯誤時才恢復按鈕
+                    buttonToDisable.textContent = rewardType === 'partner' ? '兌換夥伴收集獎' : '兌換信賴點數獎';
                 }
             })
             .catch(error => {
