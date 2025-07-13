@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>微笑之心與失落的綠色寶寶夥伴</title>
+    <title>微笑之心與失散的綠色寶寶夥伴</title>
     <link rel="stylesheet" href="style.css">
     <!-- ===== START: 新增音效庫 ===== -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
@@ -34,6 +34,9 @@
                     <div class="map-piece" data-piece-id="M04"><img src="images/M04.png" alt="夥伴四" loading="lazy"></div>
                 </div>
                 <p class="progress-text">夥伴蹤跡：<span id="map-progress-text">0 / 4</span> 位</p>
+                <!-- ===== START: 新增的夥伴獎勵兌換按鈕 ===== -->
+                <button id="redeem-partner-button" class="redeem-button" style="display: none;">兌換夥伴收集獎</button>
+                <!-- ===== END: 新增的夥伴獎勵兌換按鈕 ===== -->
             </section>
 
             <section id="compass-section">
@@ -45,17 +48,18 @@
                     <img src="images/smile-logo.png" alt="微笑標誌" class="compass-image logo-vivid">
                 </div>
                 <p class="progress-text">信賴點數：<span id="compass-progress-text">0 / 500</span></p>
-                <button id="redeem-button" style="display: none; margin: 20px auto; font-size: 1.2em; padding: 12px 25px; cursor: pointer; border-radius: 8px; border: none; background-color: #4caf50; color: white;">點此產生兌換 QR Code</button>
+                <!-- ===== START: 新增的信賴點數兌換按鈕 ===== -->
+                <button id="redeem-purchase-button" class="redeem-button" style="display: none;">兌換信賴點數獎</button>
+                <!-- ===== END: 新增的信賴點數兌換按鈕 ===== -->
             </section>
         </main>
 
         <section id="redemption-info">
             <h2>遊戲流程 & 兌換說明</h2>
             <div class="redemption-content">
-                <p><strong>最終目標：</strong><br>當「四位夥伴」全部找到，並且「微笑之心」的信賴點數累積滿 500 時，您就達成了最終目標！</p>
-                <p><strong>兌換獎品：</strong><br>達成目標後，您將能兌換我們為您準備的活動紀念獎。</p>
-                <ul><li>一份充滿心意的「MIT小禮」</li><li>它象徵著您對在地品牌的信賴與支持</li></ul>
-                <p><strong>如何兌換：</strong><br>當您在網頁上看到產生專屬QR CODE按鈕後，即可點擊按鈕產生專屬兌換碼，並親至「大會服務台」，向工作人員出示您手機上的 QR Code 畫面，核對無誤後即可兌換。</p>
+                <p><strong>夥伴收集獎：</strong><br>找滿全部 4 位夥伴，即可兌換一次性的限定獎勵！</p>
+                <p><strong>信賴點數獎：</strong><br>信賴點數每累積滿 500 點，即可兌換一份獎勵，兌換後點數將會扣除，讓您可以再次累積！</p>
+                <p><strong>如何兌換：</strong><br>當兌換按鈕出現時，即可點擊產生專屬兌換碼，並親至「大會服務台」，向工作人員出示您手機上的 QR Code 畫面，核對無誤後即可兌換。</p>
                 <p class="prize-notice">※ 請注意：每日獎品數量有限，兌完為止，敬請把握！</p>
             </div>
         </section>
@@ -85,9 +89,6 @@
         
         <div id="custom-alert-modal" class="modal-overlay" style="display: none;">
             <div class="modal-content">
-                <!-- ===== START: 新增的祝賀動畫容器 ===== -->
-                <div id="confetti-container"></div>
-                <!-- ===== END: 新增的祝賀動畫容器 ===== -->
                 <p id="custom-alert-message" style="margin-bottom: 20px; font-size: 1.2em;"></p>
                 <div id="qrcode-container" style="margin: 20px auto; width: 180px; height: 180px; background: white; padding: 10px; box-sizing: content-box;"></div>
                 <button id="custom-alert-ok-button">確定</button>
@@ -95,7 +96,6 @@
         </div>
     </div>
     
-    <!-- ===== START: 新增的夥伴登場動畫舞台 ===== -->
     <div id="discovery-overlay">
         <div class="discovery-content">
             <p class="discovery-text">你似乎發現了什麼！</p>
@@ -105,7 +105,6 @@
             <button id="wake-up-button">喚醒夥伴！</button>
         </div>
     </div>
-    <!-- ===== END: 新增的夥伴登場動畫舞台 ===== -->
 
     <script src="script.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/davidshimjs-qrcodejs@0.0.2/qrcode.min.js"></script>
