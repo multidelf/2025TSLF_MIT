@@ -17,7 +17,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const customAlertMessage = document.getElementById('custom-alert-message');
     const customAlertOkButton = document.getElementById('custom-alert-ok-button');
     const storyTextElement = document.getElementById('story-text');
-    const redeemButton = document.getElementById('redeem-button');
+    // ===== START: 新增的兌換按鈕定義 =====
+    const redeemPartnerButton = document.getElementById('redeem-partner-button');
+    const redeemPurchaseButton = document.getElementById('redeem-purchase-button');
+    // ===== END: 新增的兌換按鈕定義 =====
     const resetGameButton = document.getElementById('reset-game-button');
     const discoveryOverlay = document.getElementById('discovery-overlay');
     const discoveryImage = document.getElementById('discovery-image');
@@ -31,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
         userId: 'user_' + Date.now() + Math.random().toString(36).substr(2, 9), 
         collectedMapPieces: [], 
         totalAmount: 0, 
-        isGameWon: false 
+        partnerRewardClaimed: false // ===== 新增：用來記錄夥伴獎勵是否已兌換 =====
     };
     let userData = { ...defaultUserData };
     let fanfareSynth, purchaseSynth;
@@ -42,13 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
         Tone.start();
         const now = Tone.now();
         if (type === 'discover') {
-            if (!fanfareSynth) {
-                fanfareSynth = new Tone.PolySynth(Tone.Synth, {
-                    volume: -20,
-                    oscillator: { type: 'triangle8' },
-                    envelope: { attack: 0.02, decay: 0.3, sustain: 0.4, release: 0.5 }
-                }).toDestination();
-            }
+            if (!fanfareSynth) { fanfareSynth = new Tone.PolySynth(Tone.Synth, { volume: -20, oscillator: { type: 'triangle8' }, envelope: { attack: 0.02, decay: 0.3, sustain: 0.4, release: 0.5 } }).toDestination(); }
             fanfareSynth.releaseAll();
             switch (detail) {
                 case 'M01': fanfareSynth.triggerAttackRelease(["C4"], "8n", now); fanfareSynth.triggerAttackRelease(["E4"], "8n", now + 0.3); fanfareSynth.triggerAttackRelease(["G4"], "8n", now + 0.6); fanfareSynth.triggerAttackRelease(["C5"], "2n", now + 0.9); break;
@@ -60,30 +57,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // ===== START: 已修改的 showAlert 函式 =====
-    function showAlert(message, isCongrats = false) {
-        const modalContent = customAlertModal.querySelector('.modal-content');
-        const confettiContainer = document.getElementById('confetti-container');
-        
-        // 清理舊狀態
+    function showAlert(message) {
+        document.getElementById('qrcode-container').innerHTML = '';
         document.getElementById('qrcode-container').style.display = 'none';
-        confettiContainer.innerHTML = '';
-        modalContent.classList.remove('congrats-modal');
-
-        if (isCongrats) {
-            modalContent.classList.add('congrats-modal');
-            // 產生彩帶
-            for(let i = 0; i < 9; i++) {
-                const confetti = document.createElement('div');
-                confetti.className = 'confetti';
-                confettiContainer.appendChild(confetti);
-            }
-        }
-        
         customAlertMessage.textContent = message;
         customAlertModal.style.display = 'flex';
     }
-    // ===== END: 已修改的 showAlert 函式 =====
 
     function updateUserData(data) {
         userData = data;
@@ -94,11 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const allPieceDivs = document.querySelectorAll('.map-piece');
         allPieceDivs.forEach(pieceDiv => {
             const pieceId = pieceDiv.dataset.pieceId;
-            if (userData.collectedMapPieces.includes(pieceId)) {
-                pieceDiv.classList.add('unlocked');
-            } else {
-                pieceDiv.classList.remove('unlocked');
-            }
+            if (userData.collectedMapPieces.includes(pieceId)) { pieceDiv.classList.add('unlocked'); } else { pieceDiv.classList.remove('unlocked'); }
         });
         mapProgressText.textContent = `${userData.collectedMapPieces.length} / ${TOTAL_PIECES}`;
     }
@@ -115,6 +90,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderAll() { 
         renderMap(); 
         renderCompass(userData.totalAmount); 
+        checkPartnerReward(); // 每次渲染都檢查夥伴獎勵狀態
+        checkPurchaseReward(); // 每次渲染都檢查信賴點數獎勵狀態
     }
 
     function animateProgress(startAmount, endAmount) {
@@ -122,13 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const amountToAnimate = endAmount - startAmount;
         let startTime = null;
         if (amountToAnimate <= 0) { renderCompass(endAmount); return; }
-        if (!purchaseSynth) {
-            purchaseSynth = new Tone.Synth({
-                volume: -30,
-                oscillator: { type: 'sine' },
-                envelope: { attack: 0.01, decay: 0.1, sustain: 0.2, release: 0.2 }
-            }).toDestination();
-        }
+        if (!purchaseSynth) { purchaseSynth = new Tone.Synth({ volume: -30, oscillator: { type: 'sine' }, envelope: { attack: 0.01, decay: 0.1, sustain: 0.2, release: 0.2 } }).toDestination(); }
         const soundMilestones = [0.1, 0.25, 0.4, 0.55, 0.7, 0.85];
         const notesToPlay = ["C6", "E6", "G6", "C7", "E7", "G7"];
         let milestonesReached = 0;
@@ -149,38 +120,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 renderCompass(endAmount);
                 const now = Tone.now();
                 purchaseSynth.triggerAttackRelease("C8", "8n", now);
+                checkPurchaseReward(); // 動畫結束後再次檢查信賴點數獎勵
             }
         }
         requestAnimationFrame(animationStep);
     }
 
-    function checkWinCondition() {
-        if (userData.isGameWon) return; 
+    // ===== START: 分離的獎勵條件判斷 =====
+    function checkPartnerReward() {
         const mapIsComplete = userData.collectedMapPieces.length === TOTAL_PIECES;
-        const compassIsFull = userData.totalAmount >= GOAL_AMOUNT;
-        if (mapIsComplete && compassIsFull) {
-            updateUserData({ ...userData, isGameWon: true });
-            // ===== START: 修改勝利觸發 =====
-            // 延遲一小段時間，讓最後的動畫或音效播完
-            setTimeout(() => {
-                showTreasureLocation();
-            }, 2500);
-            // ===== END: 修改勝利觸發 =====
+        if (mapIsComplete && !userData.partnerRewardClaimed) {
+            redeemPartnerButton.style.display = 'block';
+        } else {
+            redeemPartnerButton.style.display = 'none';
         }
     }
 
-    // ===== START: 已修改的 showTreasureLocation 函式 =====
-    function showTreasureLocation() {
-        mapBoard.style.boxShadow = '0 0 30px 10px #ffd54f';
-        // 呼叫祝賀視窗
-        showAlert("🎉 恭喜！您已完成所有任務！🎉\n現在可以兌換您的專屬獎勵了！", true);
-        
-        // 在使用者按下確定後，再顯示兌換按鈕
-        customAlertOkButton.addEventListener('click', () => {
-            redeemButton.style.display = 'block';
-        }, { once: true });
+    function checkPurchaseReward() {
+        if (userData.totalAmount >= GOAL_AMOUNT) {
+            redeemPurchaseButton.style.display = 'block';
+        } else {
+            redeemPurchaseButton.style.display = 'none';
+        }
     }
-    // ===== END: 已修改的 showTreasureLocation 函式 =====
+    // ===== END: 分離的獎勵條件判斷 =====
 
     function handleDiscover(pieceId) {
         if (!userData.collectedMapPieces.includes(pieceId)) {
@@ -213,7 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateUserData({ ...userData, collectedMapPieces: newCollectedPieces });
                 renderMap();
                 showAlert(`太棒了！你找到了一位「綠色寶寶夥伴」，他加入了你的隊伍！`);
-                checkWinCondition();
+                checkPartnerReward(); // 找到新夥伴後，檢查夥伴獎勵
             }, 1500);
         }, { once: true });
     }
@@ -245,7 +208,6 @@ document.addEventListener('DOMContentLoaded', () => {
         hidePurchaseModal();
         showAlert(`「微笑之心」吸收了 ${amount} 點純粹的信賴，變得更溫暖了！`);
         logPurchaseToServer(storeId, storeName, amount, userData.userId);
-        checkWinCondition();
     }
     
     function hidePurchaseModal() {
@@ -276,14 +238,19 @@ document.addEventListener('DOMContentLoaded', () => {
     customAlertOkButton.addEventListener('click', () => { customAlertModal.style.display = 'none'; });
     submitAmountButton.addEventListener('click', handleSubmit);
     cancelButton.addEventListener('click', hidePurchaseModal);
-    redeemButton.addEventListener('click', () => {
-        if (confirm('確定要產生兌換碼嗎？\n請在服務台人員面前點擊此按鈕。')) {
-            showAlert('兌換碼產生中，請稍候...');
-            redeemButton.disabled = true;
-            const clientSideUserData = JSON.parse(localStorage.getItem('eventUserData'));
-            const userId = clientSideUserData.userId;
+
+    // ===== START: 新的兌換按鈕事件監聽 =====
+    function handleRedemption(rewardType) {
+        const confirmMessage = `確定要兌換「${rewardType === 'partner' ? '夥伴收集獎' : '信賴點數獎'}」嗎？\n請在服務台人員面前點擊此按鈕。`;
+        if (confirm(confirmMessage)) {
+            const buttonToDisable = rewardType === 'partner' ? redeemPartnerButton : redeemPurchaseButton;
+            buttonToDisable.disabled = true;
+            buttonToDisable.textContent = '兌換中...';
+
             const API_URL = 'https://script.google.com/macros/s/AKfycbz-6CiVtDU251TKiQc73NYYlfg8gTqESOvAOUc1VWtFz-_g7J0a1cdgfBUZWuDDs5x0PA/exec';
-            fetch(`${API_URL}?action=generate&userId=${userId}`)
+            const params = new URLSearchParams({ action: 'generate', userId: userData.userId, rewardType: rewardType });
+            
+            fetch(`${API_URL}?${params.toString()}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === 'success' || data.status === 'already_generated') {
@@ -292,19 +259,34 @@ document.addEventListener('DOMContentLoaded', () => {
                         qrcodeContainer.style.display = 'block';
                         const verificationUrl = `https://multidelf.github.io/2025TSLF_MIT/verify.html?code=${data.code}`;
                         new QRCode(qrcodeContainer, { text: verificationUrl, width: 180, height: 180, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H });
-                        document.getElementById('custom-alert-message').textContent = `您的專屬兌換碼已產生！\n請將此 QR Code 出示給工作人員掃描。`;
-                        redeemButton.style.display = 'none';
+                        showAlert(`您的專屬兌換碼已產生！\n請將此 QR Code 出示給工作人員掃描。`);
+                        
+                        if (rewardType === 'partner') {
+                            updateUserData({ ...userData, partnerRewardClaimed: true });
+                            redeemPartnerButton.style.display = 'none';
+                        } else if (rewardType === 'purchase') {
+                            const newTotalAmount = userData.totalAmount - GOAL_AMOUNT;
+                            updateUserData({ ...userData, totalAmount: newTotalAmount });
+                            renderCompass(newTotalAmount);
+                            checkPurchaseReward();
+                            buttonToDisable.disabled = false;
+                            buttonToDisable.textContent = '兌換信賴點數獎';
+                        }
                     } else {
                         showAlert(`發生錯誤：${data.message}`);
-                        redeemButton.disabled = false;
+                        buttonToDisable.disabled = false;
                     }
                 })
                 .catch(error => {
                     showAlert(`網路連線錯誤，請稍後再試。`);
-                    redeemButton.disabled = false;
+                    buttonToDisable.disabled = false;
                 });
         }
-    });
+    }
+
+    redeemPartnerButton.addEventListener('click', () => handleRedemption('partner'));
+    redeemPurchaseButton.addEventListener('click', () => handleRedemption('purchase'));
+    // ===== END: 新的兌換按鈕事件監聽 =====
     
     resetGameButton.addEventListener('click', () => {
         const isConfirmed = window.confirm('您確定要清除所有遊戲紀錄並從頭開始嗎？\n這個操作無法復原！');
@@ -341,10 +323,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         renderAll();
         
-        if (userData.isGameWon) {
-             showTreasureLocation();
-        }
-
         document.body.addEventListener('click', unlockAudio);
         document.body.addEventListener('touchstart', unlockAudio);
 
