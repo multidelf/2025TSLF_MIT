@@ -17,10 +17,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const customAlertMessage = document.getElementById('custom-alert-message');
     const customAlertOkButton = document.getElementById('custom-alert-ok-button');
     const storyTextElement = document.getElementById('story-text');
-    // ===== START: 新增的兌換按鈕定義 =====
     const redeemPartnerButton = document.getElementById('redeem-partner-button');
     const redeemPurchaseButton = document.getElementById('redeem-purchase-button');
-    // ===== END: 新增的兌換按鈕定義 =====
     const resetGameButton = document.getElementById('reset-game-button');
     const discoveryOverlay = document.getElementById('discovery-overlay');
     const discoveryImage = document.getElementById('discovery-image');
@@ -34,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
         userId: 'user_' + Date.now() + Math.random().toString(36).substr(2, 9), 
         collectedMapPieces: [], 
         totalAmount: 0, 
-        partnerRewardClaimed: false // ===== 新增：用來記錄夥伴獎勵是否已兌換 =====
+        partnerRewardClaimed: false
     };
     let userData = { ...defaultUserData };
     let fanfareSynth, purchaseSynth;
@@ -90,8 +88,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderAll() { 
         renderMap(); 
         renderCompass(userData.totalAmount); 
-        checkPartnerReward(); // 每次渲染都檢查夥伴獎勵狀態
-        checkPurchaseReward(); // 每次渲染都檢查信賴點數獎勵狀態
+        checkPartnerReward();
+        checkPurchaseReward();
     }
 
     function animateProgress(startAmount, endAmount) {
@@ -99,7 +97,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const amountToAnimate = endAmount - startAmount;
         let startTime = null;
         if (amountToAnimate <= 0) { renderCompass(endAmount); return; }
-        if (!purchaseSynth) { purchaseSynth = new Tone.Synth({ volume: -30, oscillator: { type: 'sine' }, envelope: { attack: 0.01, decay: 0.1, sustain: 0.2, release: 0.2 } }).toDestination(); }
+        if (!purchaseSynth) {
+            purchaseSynth = new Tone.Synth({
+                volume: -30,
+                oscillator: { type: 'sine' },
+                envelope: { attack: 0.01, decay: 0.1, sustain: 0.2, release: 0.2 }
+            }).toDestination();
+        }
         const soundMilestones = [0.1, 0.25, 0.4, 0.55, 0.7, 0.85];
         const notesToPlay = ["C6", "E6", "G6", "C7", "E7", "G7"];
         let milestonesReached = 0;
@@ -120,13 +124,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 renderCompass(endAmount);
                 const now = Tone.now();
                 purchaseSynth.triggerAttackRelease("C8", "8n", now);
-                checkPurchaseReward(); // 動畫結束後再次檢查信賴點數獎勵
+                checkPurchaseReward();
             }
         }
         requestAnimationFrame(animationStep);
     }
 
-    // ===== START: 分離的獎勵條件判斷 =====
     function checkPartnerReward() {
         const mapIsComplete = userData.collectedMapPieces.length === TOTAL_PIECES;
         if (mapIsComplete && !userData.partnerRewardClaimed) {
@@ -143,7 +146,6 @@ document.addEventListener('DOMContentLoaded', () => {
             redeemPurchaseButton.style.display = 'none';
         }
     }
-    // ===== END: 分離的獎勵條件判斷 =====
 
     function handleDiscover(pieceId) {
         if (!userData.collectedMapPieces.includes(pieceId)) {
@@ -176,7 +178,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateUserData({ ...userData, collectedMapPieces: newCollectedPieces });
                 renderMap();
                 showAlert(`太棒了！你找到了一位「綠色寶寶夥伴」，他加入了你的隊伍！`);
-                checkPartnerReward(); // 找到新夥伴後，檢查夥伴獎勵
+                checkPartnerReward();
             }, 1500);
         }, { once: true });
     }
@@ -239,54 +241,58 @@ document.addEventListener('DOMContentLoaded', () => {
     submitAmountButton.addEventListener('click', handleSubmit);
     cancelButton.addEventListener('click', hidePurchaseModal);
 
-    // ===== START: 新的兌換按鈕事件監聽 =====
+    // ===== START: 已修改的兌換函式 =====
     function handleRedemption(rewardType) {
         const confirmMessage = `確定要兌換「${rewardType === 'partner' ? '夥伴收集獎' : '信賴點數獎'}」嗎？\n請在服務台人員面前點擊此按鈕。`;
-        if (confirm(confirmMessage)) {
-            const buttonToDisable = rewardType === 'partner' ? redeemPartnerButton : redeemPurchaseButton;
-            buttonToDisable.disabled = true;
-            buttonToDisable.textContent = '兌換中...';
+        if (!confirm(confirmMessage)) return;
 
-            const API_URL = 'https://script.google.com/macros/s/AKfycbz-6CiVtDU251TKiQc73NYYlfg8gTqESOvAOUc1VWtFz-_g7J0a1cdgfBUZWuDDs5x0PA/exec';
-            const params = new URLSearchParams({ action: 'generate', userId: userData.userId, rewardType: rewardType });
-            
-            fetch(`${API_URL}?${params.toString()}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'success' || data.status === 'already_generated') {
-                        const qrcodeContainer = document.getElementById('qrcode-container');
-                        qrcodeContainer.innerHTML = '';
-                        qrcodeContainer.style.display = 'block';
-                        const verificationUrl = `https://multidelf.github.io/2025TSLF_MIT/verify.html?code=${data.code}`;
-                        new QRCode(qrcodeContainer, { text: verificationUrl, width: 180, height: 180, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H });
-                        showAlert(`您的專屬兌換碼已產生！\n請將此 QR Code 出示給工作人員掃描。`);
-                        
-                        if (rewardType === 'partner') {
-                            updateUserData({ ...userData, partnerRewardClaimed: true });
-                            redeemPartnerButton.style.display = 'none';
-                        } else if (rewardType === 'purchase') {
-                            const newTotalAmount = userData.totalAmount - GOAL_AMOUNT;
-                            updateUserData({ ...userData, totalAmount: newTotalAmount });
-                            renderCompass(newTotalAmount);
-                            checkPurchaseReward();
-                            buttonToDisable.disabled = false;
-                            buttonToDisable.textContent = '兌換信賴點數獎';
-                        }
-                    } else {
-                        showAlert(`發生錯誤：${data.message}`);
-                        buttonToDisable.disabled = false;
+        const buttonToDisable = rewardType === 'partner' ? redeemPartnerButton : redeemPurchaseButton;
+        buttonToDisable.disabled = true;
+        buttonToDisable.textContent = '兌換中...';
+
+        const API_URL = 'https://script.google.com/macros/s/AKfycbz-6CiVtDU251TKiQc73NYYlfg8gTqESOvAOUc1VWtFz-_g7J0a1cdgfBUZWuDDs5x0PA/exec';
+        const params = new URLSearchParams({ action: 'generate', userId: userData.userId, rewardType: rewardType });
+        
+        fetch(`${API_URL}?${params.toString()}`)
+            .then(response => response.json())
+            .then(data => {
+                // 無論成功或失敗，都先把按鈕恢復
+                buttonToDisable.disabled = false;
+                buttonToDisable.textContent = rewardType === 'partner' ? '兌換夥伴收集獎' : '兌換信賴點數獎';
+
+                if (data.status === 'success' || data.status === 'already_generated') {
+                    // 成功拿到兌換碼後，才顯示 QR Code 視窗
+                    const qrcodeContainer = document.getElementById('qrcode-container');
+                    qrcodeContainer.innerHTML = '';
+                    const verificationUrl = `https://multidelf.github.io/2025TSLF_MIT/verify.html?code=${data.code}`;
+                    new QRCode(qrcodeContainer, { text: verificationUrl, width: 180, height: 180, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H });
+                    
+                    document.getElementById('qrcode-container').style.display = 'block';
+                    showAlert(`您的專屬兌換碼已產生！\n請將此 QR Code 出示給工作人員掃描。`);
+                    
+                    if (rewardType === 'partner') {
+                        updateUserData({ ...userData, partnerRewardClaimed: true });
+                        redeemPartnerButton.style.display = 'none'; // 永久隱藏
+                    } else if (rewardType === 'purchase') {
+                        const newTotalAmount = userData.totalAmount - GOAL_AMOUNT;
+                        updateUserData({ ...userData, totalAmount: newTotalAmount });
+                        renderCompass(newTotalAmount); // 更新畫面
+                        checkPurchaseReward(); // 重新檢查按鈕狀態
                     }
-                })
-                .catch(error => {
-                    showAlert(`網路連線錯誤，請稍後再試。`);
-                    buttonToDisable.disabled = false;
-                });
-        }
+                } else {
+                    showAlert(`發生錯誤：${data.message}`);
+                }
+            })
+            .catch(error => {
+                showAlert(`網路連線錯誤，請稍後再試。`);
+                buttonToDisable.disabled = false;
+                buttonToDisable.textContent = rewardType === 'partner' ? '兌換夥伴收集獎' : '兌換信賴點數獎';
+            });
     }
 
     redeemPartnerButton.addEventListener('click', () => handleRedemption('partner'));
     redeemPurchaseButton.addEventListener('click', () => handleRedemption('purchase'));
-    // ===== END: 新的兌換按鈕事件監聽 =====
+    // ===== END: 已修改的兌換函式 =====
     
     resetGameButton.addEventListener('click', () => {
         const isConfirmed = window.confirm('您確定要清除所有遊戲紀錄並從頭開始嗎？\n這個操作無法復原！');
