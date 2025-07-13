@@ -254,7 +254,7 @@ document.addEventListener('DOMContentLoaded', () => {
     submitAmountButton.addEventListener('click', handleSubmit);
     cancelButton.addEventListener('click', hidePurchaseModal);
 
-    // ===== START: 全新、帶有強力除錯功能的兌換函式 =====
+    // ===== START: 已修正時序問題的兌換函式 =====
     function handleRedemption(rewardType) {
         const confirmMessage = `確定要兌換「${rewardType === 'partner' ? '夥伴收集獎' : '信賴點數獎'}」嗎？\n請在服務台人員面前點擊此按鈕。`;
         if (!confirm(confirmMessage)) return;
@@ -263,37 +263,32 @@ document.addEventListener('DOMContentLoaded', () => {
         buttonToDisable.disabled = true;
         buttonToDisable.textContent = '兌換中...';
 
+        // 先跳出「兌換中」的提示，但不包含 QR Code 容器
+        showAlert('兌換碼產生中，請稍候...');
+
         const API_URL = 'https://script.google.com/macros/s/AKfycbz-6CiVtDU251TKiQc73NYYlfg8gTqESOvAOUc1VWtFz-_g7J0a1cdgfBUZWuDDs5x0PA/exec';
         const params = new URLSearchParams({ action: 'generate', userId: userData.userId, rewardType: rewardType });
-        const fetchUrl = `${API_URL}?${params.toString()}`;
         
-        // 在主控台印出我們要發送的請求網址，方便除錯
-        console.log("正在發送請求至: ", fetchUrl);
-        
-        fetch(fetchUrl)
+        fetch(`${API_URL}?${params.toString()}`)
             .then(response => {
-                // 無論如何，先檢查 response 本身是否正常
-                console.log("收到後端回應，狀態碼: ", response.status);
-                if (!response.ok) {
-                    // 如果狀態不是 2xx，代表發生了伺服器層級的錯誤
-                    throw new Error(`伺服器錯誤，狀態碼: ${response.status}`);
-                }
-                // 嘗試將回應解析為 JSON
+                if (!response.ok) { throw new Error(`伺服器錯誤，狀態碼: ${response.status}`); }
                 return response.json();
             })
             .then(data => {
-                // 成功解析 JSON 後，在主控台印出收到的資料
-                console.log("成功解析 JSON，收到的資料: ", data);
-
                 if (data.status === 'success' || data.status === 'already_generated') {
+                    // 成功拿到兌換碼後，才更新提示視窗的內容
                     const qrcodeContainer = document.getElementById('qrcode-container');
-                    qrcodeContainer.innerHTML = '';
+                    qrcodeContainer.innerHTML = ''; // 清空舊的 QR Code
                     const verificationUrl = `https://multidelf.github.io/2025TSLF_MIT/verify.html?code=${data.code}`;
+                    
+                    // 產生新的 QR Code
                     new QRCode(qrcodeContainer, { text: verificationUrl, width: 180, height: 180, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H });
                     
-                    document.getElementById('qrcode-container').style.display = 'block';
-                    showAlert(`您的專屬兌換碼已產生！\n請將此 QR Code 出示給工作人員掃描。`);
+                    // 更新提示文字並顯示 QR Code
+                    customAlertMessage.textContent = `您的專屬兌換碼已產生！\n請將此 QR Code 出示給工作人員掃描。`;
+                    qrcodeContainer.style.display = 'block';
                     
+                    // 根據獎勵類型更新本地狀態
                     if (rewardType === 'partner') {
                         updateUserData({ ...userData, partnerRewardClaimed: true });
                         checkPartnerReward(); 
@@ -304,14 +299,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         checkPurchaseReward();
                     }
                 } else {
-                    // 如果 status 不是 success，顯示後端回傳的錯誤訊息
-                    showAlert(`兌換失敗：${data.message || '未知的後端錯誤'}`);
+                    // 如果後端回傳的是邏輯上的錯誤
+                    showAlert(`發生錯誤：${data.message}`);
                 }
             })
             .catch(error => {
-                // 如果連線失敗或 JSON 解析失敗，顯示錯誤
-                console.error("Fetch 發生錯誤: ", error);
-                showAlert(`網路連線或資料格式錯誤，請稍後再試。\n錯誤詳情: ${error.message}`);
+                // 如果是網路連線或解析錯誤
+                showAlert(`網路連線或資料格式錯誤，請稍後再試。`);
+                console.error("兌換時發生錯誤:", error);
             })
             .finally(() => {
                 // 無論成功或失敗，最後都恢復按鈕的狀態
@@ -323,7 +318,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     redeemPartnerButton.addEventListener('click', () => handleRedemption('partner'));
     redeemPurchaseButton.addEventListener('click', () => handleRedemption('purchase'));
-    // ===== END: 全新、帶有強力除錯功能的兌換函式 =====
+    // ===== END: 已修正時序問題的兌換函式 =====
     
     resetGameButton.addEventListener('click', () => {
         const isConfirmed = window.confirm('您確定要清除所有遊戲紀錄並從頭開始嗎？\n這個操作無法復原！');
