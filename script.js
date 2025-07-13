@@ -254,6 +254,7 @@ document.addEventListener('DOMContentLoaded', () => {
     submitAmountButton.addEventListener('click', handleSubmit);
     cancelButton.addEventListener('click', hidePurchaseModal);
 
+    // ===== START: 全新、帶有強力除錯功能的兌換函式 =====
     function handleRedemption(rewardType) {
         const confirmMessage = `確定要兌換「${rewardType === 'partner' ? '夥伴收集獎' : '信賴點數獎'}」嗎？\n請在服務台人員面前點擊此按鈕。`;
         if (!confirm(confirmMessage)) return;
@@ -264,10 +265,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const API_URL = 'https://script.google.com/macros/s/AKfycbz-6CiVtDU251TKiQc73NYYlfg8gTqESOvAOUc1VWtFz-_g7J0a1cdgfBUZWuDDs5x0PA/exec';
         const params = new URLSearchParams({ action: 'generate', userId: userData.userId, rewardType: rewardType });
+        const fetchUrl = `${API_URL}?${params.toString()}`;
         
-        fetch(`${API_URL}?${params.toString()}`)
-            .then(response => response.json())
+        // 在主控台印出我們要發送的請求網址，方便除錯
+        console.log("正在發送請求至: ", fetchUrl);
+        
+        fetch(fetchUrl)
+            .then(response => {
+                // 無論如何，先檢查 response 本身是否正常
+                console.log("收到後端回應，狀態碼: ", response.status);
+                if (!response.ok) {
+                    // 如果狀態不是 2xx，代表發生了伺服器層級的錯誤
+                    throw new Error(`伺服器錯誤，狀態碼: ${response.status}`);
+                }
+                // 嘗試將回應解析為 JSON
+                return response.json();
+            })
             .then(data => {
+                // 成功解析 JSON 後，在主控台印出收到的資料
+                console.log("成功解析 JSON，收到的資料: ", data);
+
                 if (data.status === 'success' || data.status === 'already_generated') {
                     const qrcodeContainer = document.getElementById('qrcode-container');
                     qrcodeContainer.innerHTML = '';
@@ -287,20 +304,26 @@ document.addEventListener('DOMContentLoaded', () => {
                         checkPurchaseReward();
                     }
                 } else {
-                    showAlert(`發生錯誤：${data.message}`);
-                    buttonToDisable.disabled = false;
-                    buttonToDisable.textContent = rewardType === 'partner' ? '兌換夥伴收集獎' : '兌換信賴點數獎';
+                    // 如果 status 不是 success，顯示後端回傳的錯誤訊息
+                    showAlert(`兌換失敗：${data.message || '未知的後端錯誤'}`);
                 }
             })
             .catch(error => {
-                showAlert(`網路連線錯誤，請稍後再試。`);
+                // 如果連線失敗或 JSON 解析失敗，顯示錯誤
+                console.error("Fetch 發生錯誤: ", error);
+                showAlert(`網路連線或資料格式錯誤，請稍後再試。\n錯誤詳情: ${error.message}`);
+            })
+            .finally(() => {
+                // 無論成功或失敗，最後都恢復按鈕的狀態
                 buttonToDisable.disabled = false;
                 buttonToDisable.textContent = rewardType === 'partner' ? '兌換夥伴收集獎' : '兌換信賴點數獎';
+                checkPartnerReward(); // 再次檢查，確保已兌換的按鈕維持禁用
             });
     }
 
     redeemPartnerButton.addEventListener('click', () => handleRedemption('partner'));
     redeemPurchaseButton.addEventListener('click', () => handleRedemption('purchase'));
+    // ===== END: 全新、帶有強力除錯功能的兌換函式 =====
     
     resetGameButton.addEventListener('click', () => {
         const isConfirmed = window.confirm('您確定要清除所有遊戲紀錄並從頭開始嗎？\n這個操作無法復原！');
